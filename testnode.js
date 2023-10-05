@@ -11,12 +11,21 @@ http
       "Access-Control-Allow-Origin": "http://127.0.0.1:5500",
       Vary: "Origin",
     });
+
+    const urlParseResult = urlParse(req.url);
+
     res.end(
       JSON.stringify({
-        data: "test",
-        other: "test2",
-        requestHeaders: req.headers,
+        urlParseResult,
       })
     );
   })
   .listen(8080);
+
+function urlParse(requestUrl) {
+  if (requestUrl === "/test") {
+    return "yes";
+  } else {
+    return "no";
+  }
+}
