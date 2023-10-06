@@ -16,10 +16,11 @@ http
     });
 
     // can pull something from the request url
-    const urlParseResult = urlParse(req.url);
+    const { latitude, longitude } = getUrlParameters(req.url);
+    console.log(latitude, longitude);
 
     // ### Need to add sad path response
-    getAltitudeAzimuthCurve().then((data) => {
+    getAltitudeAzimuthCurve({ latitude, longitude }).then((data) => {
       res.end(
         JSON.stringify({
           data,
@@ -34,11 +35,10 @@ const rightAscension = rightAscensionToDecimalDegrees(2, 59);
 const declination = declinationToDecimalDeclination(89, 21);
 // call the usno api and return a list of 60 alt/az values with timestamps,
 // separate by 1 minute for now, so 1 hours worth for a selected object
-async function getAltitudeAzimuthCurve() {
-  // get time info for consts: date & time
+async function getAltitudeAzimuthCurve(parameters) {
+  const { latitude, longitude } = parameters;
+
   const [date, time] = getDateAndTime();
-  // ###HARDCODED VALUES FOR DEV#####
-  const [latitude, longitude] = ["35.11", "-106.59"];
   const reps = "1";
   const intervalMagnitude = "5";
   const intervalUnit = "minutes";
@@ -57,17 +57,14 @@ async function getAltitudeAzimuthCurve() {
   const data = await res.json();
   const [altitude, azimuth] = extractAltitudeAzimuth(data, latitude);
 
-  // console.log(`altitude: ${altitude}, azimuth: ${azimuth}`);
-
   return [altitude, azimuth];
 }
 
-function urlParse(requestUrl) {
-  if (requestUrl === "/test") {
-    return "yes";
-  } else {
-    return "no";
-  }
+function getUrlParameters(requestUrl) {
+  const parameters = requestUrl.split("?")[1].split("&");
+  const latitude = parameters[0].split("=")[1];
+  const longitude = parameters[1].split("=")[1];
+  return { latitude, longitude };
 }
 
 function getDateAndTime() {

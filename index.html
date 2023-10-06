@@ -3,14 +3,46 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="index.css" />
     <title>Document</title>
   </head>
   <body>
-    <h1>Test</h1>
-    <h2 id="fetchStatus">Server Status</h2>
-    <button id="testButton">Test</button>
-    <a href="./server.html" target="_blank">Server Page</a>
+    <div class="container">
+      <h1>Star Tracker Prototype</h1>
+      <div class="serverStatusContainer">
+        <h2>Server Status:</h2>
+        <h3 class="serverStatusResponse" id="fetchStatus">---No Call---</h3>
+      </div>
+      <div class="latLonInputContainer">
+        <input
+          class="coordinateInput"
+          type="number"
+          id="latitudeInput"
+          placeholder="Latitude"
+        />
+        <input
+          class="coordinateInput"
+          type="number"
+          id="longitudeInput"
+          placeholder="Longitude"
+        />
+      </div>
+      <button id="testButton" class="requestButton">Test Request</button>
+      <div class="resultsContainer">
+        <h2 class="coordinateResult">
+          Altitude: <span id="altitudeResult">-</span>
+        </h2>
+        <h2 class="coordinateResult">
+          Azimuth: <span id="azimuthResult">-</span>
+        </h2>
+      </div>
+    </div>
     <script src="./index.js" type="module"></script>
   </body>
 </html>

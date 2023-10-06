@@ -1,4 +1,41 @@
 body {
   background-color: #333;
   color: whitesmoke;
+  font-family: "Inter", sans-serif;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1em;
+  max-width: 400px;
+  margin: 1em auto;
+}
+
+.serverStatusContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.serverStatusResponse {
+  margin: 0;
+}
+
+.latLonInputContainer {
+  margin-top: 2em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+}
+
+.coordinateInput {
+  padding: 0.5em;
+  text-align: center;
+}
+
+.requestButton {
+  padding: 0.5em 2em;
+  font-family: "Inter", sans-serif;
 }
