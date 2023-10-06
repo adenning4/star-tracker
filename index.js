@@ -26,10 +26,6 @@ testButtonEl.addEventListener("click", () => {
   getServerData();
 });
 
-// #########
-apiTestButtonEl.addEventListener("click", () => getAltitudeAzimuthCurve());
-// ########
-
 function getServerData() {
   // need to build a URL with user input
   // coordinates, object, ...
