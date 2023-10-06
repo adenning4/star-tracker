@@ -17,7 +17,6 @@ http
     const { latitude, longitude, body } = getClientRequestUrlParameters(
       req.url
     );
-    console.log(latitude, longitude, body);
 
     // ### Need to add sad path response
     getAltitudeAzimuthCurve({ latitude, longitude, body }).then((data) => {
@@ -53,7 +52,8 @@ async function getAltitudeAzimuthCurve(parameters) {
 
   const raDecRes = await fetch(getRaDecUrl(urlParameters));
   const raDecHTML = await raDecRes.text();
-  const [rightAscension, declination] = getRaDecValues(raDecHTML);
+  const [rightAscension, declination, trackingObjectName] =
+    getRaDecObjectValues(raDecHTML);
 
   const siderialRes = await fetch(getSiderialUrl(urlParameters));
   const siderialData = await siderialRes.json();
@@ -64,16 +64,17 @@ async function getAltitudeAzimuthCurve(parameters) {
     declination
   );
 
-  return [altitude, azimuth];
+  return [altitude, azimuth, trackingObjectName];
 }
 
-function getRaDecValues(raDecHTML) {
+function getRaDecObjectValues(raDecHTML) {
   const rightAscensionRaw = {};
   const declinationRaw = {};
   const htmlPre = raDecHTML.match(/<pre [\s\S]+>[\s\S]+<\Spre>/gm);
+  const trackingObjectName = htmlPre[0].split(/\n/gm)[1].trim();
+
   const dataLine = htmlPre[0].split(/\n/gm)[13];
   const dataLineParts = dataLine.split(/\s{3,}/);
-  console.log(dataLineParts);
 
   rightAscensionRaw.hours = dataLineParts[1].split(" ")[0];
   rightAscensionRaw.minutes = dataLineParts[1].split(" ")[1];
@@ -88,7 +89,7 @@ function getRaDecValues(raDecHTML) {
   const rightAscension = rightAscensionToDecimalDegrees(rightAscensionRaw);
   const declination = declinationToDecimalDeclination(declinationRaw);
 
-  return [rightAscension, declination];
+  return [rightAscension, declination, trackingObjectName];
 }
 
 function getRaDecUrl(urlParameters) {
@@ -111,8 +112,6 @@ function getRaDecUrl(urlParameters) {
 
   const url = `https://aa.usno.navy.mil/calculated/positions/topocentric?ID=AA&task=8&body=${body}&date=${date}&time=${formattedTime}&intv_mag=${intervalMagnitude}&intv_unit=${formattedIntervalUnit}&reps=${reps}&lat=${latitude}&lon=${longitude}&label=&height=1676&submit=Get+Data`;
 
-  console.log(`RaDec Url: ${url}`);
-
   return url;
 }
 
@@ -128,8 +127,6 @@ function getSiderialUrl(urlParameters) {
   } = urlParameters;
 
   const url = `https://aa.usno.navy.mil/api/siderealtime?date=${date}&coords=${latitude}, ${longitude}&reps=${reps} &intv_mag=${intervalMagnitude}&intv_unit=${intervalUnit} &time=${time}`;
-
-  console.log(`Siderial Url: ${url}`);
 
   return url;
 }

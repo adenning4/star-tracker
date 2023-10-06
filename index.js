@@ -4,6 +4,7 @@ const latitudeInputEl = document.getElementById("latitudeInput");
 const longitudeInputEl = document.getElementById("longitudeInput");
 const altitudeResultEl = document.getElementById("altitudeResult");
 const azimuthResultEl = document.getElementById("azimuthResult");
+const trackingObjectNameEl = document.getElementById("trackingObjectName");
 const trackingObjectSelectionEl = document.getElementById(
   "trackingObjectSelection"
 );
@@ -39,9 +40,9 @@ function getServerData() {
       return res.json();
     })
     .then((data) => {
-      console.log(data.data);
       altitudeResultEl.textContent = data.data[0].toFixed(4);
       azimuthResultEl.textContent = data.data[1].toFixed(4);
+      trackingObjectNameEl.textContent = data.data[2];
     })
     .catch((err) => (fetchStatusEl.textContent = err));
 }
@@ -57,6 +58,5 @@ function getRequestUrl(coordinates, trackingObject) {
   const requestUrl =
     serverAddress + coordinatesParameters + trackingObjectParameter;
 
-  console.log(requestUrl);
   return requestUrl;
 }
