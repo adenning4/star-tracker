@@ -4,11 +4,12 @@ const latitudeInputEl = document.getElementById("latitudeInput");
 const longitudeInputEl = document.getElementById("longitudeInput");
 const altitudeResultEl = document.getElementById("altitudeResult");
 const azimuthResultEl = document.getElementById("azimuthResult");
+const trackingObjectSelectionEl = document.getElementById(
+  "trackingObjectSelection"
+);
 
-// user should be prompted for location data first
-// need to build manual input option for declined/unsuccessful requests
-// coordinates must be passed through the url to request the right data
-// need to create some behavior that keeps the user from requesting data til this is resolved
+// ### need to build manual input option for declined/unsuccessful requests
+// ### need to create some behavior that keeps the user from requesting data til this is resolved
 navigator.geolocation.getCurrentPosition(
   (pos) => {
     latitudeInputEl.value = pos.coords.latitude;
@@ -31,10 +32,8 @@ function getServerData() {
     latitude: latitudeInputEl.value,
     longitude: longitudeInputEl.value,
   };
-  // need to build a URL with user input
-  // coordinates, object, ...
-  fetch(getRequestUrl(coordinates))
-    // .then((res) => console.log(res))
+  const trackingObject = trackingObjectSelectionEl.value;
+  fetch(getRequestUrl(coordinates, trackingObject))
     .then((res) => {
       fetchStatusEl.textContent = res.status;
       return res.json();
@@ -47,13 +46,16 @@ function getServerData() {
     .catch((err) => (fetchStatusEl.textContent = err));
 }
 
-function getRequestUrl(coordinates) {
+function getRequestUrl(coordinates, trackingObject) {
   const serverAddress = "http://127.0.0.1:8080";
   const latitudeRounded = Number(coordinates.latitude).toFixed(2);
   const longitudeRounded = Number(coordinates.longitude).toFixed(2);
   const coordinatesParameters = `?latitude=${latitudeRounded}&longitude=${longitudeRounded}`;
 
-  const requestUrl = serverAddress + coordinatesParameters;
+  const trackingObjectParameter = `&body=${trackingObject}`;
+
+  const requestUrl =
+    serverAddress + coordinatesParameters + trackingObjectParameter;
 
   console.log(requestUrl);
   return requestUrl;
