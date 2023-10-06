@@ -1,43 +1,40 @@
-// This module to act as server, manage needed updates from client, provide data in JSON format from some local storage,
-// call to the web and update local storage when needed
-// create skeleton ui for manual manipulation if needed
+const degreesToRadians = Math.PI / 180;
+const radiansToDegrees = 180 / Math.PI;
 
-var http = require("http");
+// This module to act as server, manage needed updates from client, provide data in JSON format from some database,
+// call to the web and update database when needed
+
+const http = require("http");
 
 http
   .createServer((req, res) => {
     res.writeHead(200, {
       "Content-Type": "application/json",
+      // ### CORS issues need to be addressed for non-local session 5500 port
       "Access-Control-Allow-Origin": "http://127.0.0.1:5500",
       Vary: "Origin",
     });
 
+    // can pull something from the request url
     const urlParseResult = urlParse(req.url);
-    getAltitudeAzimuthCurve();
 
-    res.end(
-      JSON.stringify({
-        urlParseResult,
-      })
-    );
+    // ### Need to add sad path response
+    getAltitudeAzimuthCurve().then((data) => {
+      res.end(
+        JSON.stringify({
+          data,
+        })
+      );
+    });
   })
   .listen(8080);
 
-function urlParse(requestUrl) {
-  if (requestUrl === "/test") {
-    return "yes";
-  } else {
-    return "no";
-  }
-}
-
-const degreesToRadians = Math.PI / 180;
-const radiansToDegrees = 180 / Math.PI;
+// ### Right ascension and declination should be determined by user chosen object passed through the url parameters
 const rightAscension = rightAscensionToDecimalDegrees(2, 59);
 const declination = declinationToDecimalDeclination(89, 21);
 // call the usno api and return a list of 60 alt/az values with timestamps,
 // separate by 1 minute for now, so 1 hours worth for a selected object
-function getAltitudeAzimuthCurve() {
+async function getAltitudeAzimuthCurve() {
   // get time info for consts: date & time
   const [date, time] = getDateAndTime();
   // ###HARDCODED VALUES FOR DEV#####
@@ -56,30 +53,21 @@ function getAltitudeAzimuthCurve() {
     intervalUnit,
   };
 
-  fetch(getUrl(urlParameters))
-    .then((res) => res.json())
-    .then((data) => {
-      const lmst = data.properties.data[0].lmst;
-      const lmstDecimal = timeToDecimalHours(lmst);
-      const hourAngle = rightAscensionDegreesToHourAngle(
-        rightAscension,
-        lmstDecimal
-      );
-      const altitude = calculateAltitudeDegrees(
-        declination,
-        latitude,
-        hourAngle
-      );
-      const azimuth = calculateAzimuthDegrees(
-        declination,
-        latitude,
-        altitude,
-        hourAngle
-      );
+  const res = await fetch(getUrl(urlParameters));
+  const data = await res.json();
+  const [altitude, azimuth] = extractAltitudeAzimuth(data, latitude);
 
-      console.log(`altitude: ${altitude}, azimuth: ${azimuth}`);
-    })
-    .catch((err) => console.log(err));
+  // console.log(`altitude: ${altitude}, azimuth: ${azimuth}`);
+
+  return [altitude, azimuth];
+}
+
+function urlParse(requestUrl) {
+  if (requestUrl === "/test") {
+    return "yes";
+  } else {
+    return "no";
+  }
 }
 
 function getDateAndTime() {
@@ -101,6 +89,24 @@ function getUrl(urlParameters) {
   } = urlParameters;
 
   return `https://aa.usno.navy.mil/api/siderealtime?date=${date}&coords=${latitude}, ${longitude}&reps=${reps} &intv_mag=${intervalMagnitude}&intv_unit=${intervalUnit} &time=${time}`;
+}
+
+function extractAltitudeAzimuth(data, latitude) {
+  const lmst = data.properties.data[0].lmst;
+  const lmstDecimal = timeToDecimalHours(lmst);
+  const hourAngle = rightAscensionDegreesToHourAngle(
+    rightAscension,
+    lmstDecimal
+  );
+  const altitude = calculateAltitudeDegrees(declination, latitude, hourAngle);
+  const azimuth = calculateAzimuthDegrees(
+    declination,
+    latitude,
+    altitude,
+    hourAngle
+  );
+
+  return [altitude, azimuth];
 }
 
 function timeToDecimalHours(timeStr) {
