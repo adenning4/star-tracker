@@ -8,6 +8,12 @@ const trackingObjectNameEl = document.getElementById("trackingObjectName");
 const trackingObjectSelectionEl = document.getElementById(
   "trackingObjectSelection"
 );
+const clockEl = document.getElementById("clock");
+
+setInterval(() => {
+  const date = new Date();
+  clockEl.textContent = date.toTimeString();
+}, 1000);
 
 // ### need to build manual input option for declined/unsuccessful requests
 // ### need to create some behavior that keeps the user from requesting data til this is resolved
