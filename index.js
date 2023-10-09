@@ -1,5 +1,5 @@
 const testButtonEl = document.getElementById("testButton");
-const fetchStatusEl = document.getElementById("fetchStatus");
+// const fetchStatusEl = document.getElementById("fetchStatus");
 const latitudeInputEl = document.getElementById("latitudeInput");
 const longitudeInputEl = document.getElementById("longitudeInput");
 const altitudeResultEl = document.getElementById("altitudeResult");
@@ -45,7 +45,7 @@ function getServerData() {
   const trackingObject = trackingObjectSelectionEl.value;
   fetch(getRequestUrl(coordinates, trackingObject))
     .then((res) => {
-      fetchStatusEl.textContent = res.status;
+      // fetchStatusEl.textContent = res.status;
       return res.json();
     })
     .then((data) => {
@@ -54,7 +54,8 @@ function getServerData() {
       trackingObjectNameEl.textContent = data.trackingObjectName;
     })
     .catch((err) => {
-      fetchStatusEl.textContent = err;
+      console.log(err);
+      // fetchStatusEl.textContent = err;
     });
 }
 

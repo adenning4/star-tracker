@@ -14,11 +14,7 @@
   </head>
   <body>
     <div class="container">
-      <h1>Star Tracker Prototype</h1>
-      <div class="serverStatusContainer">
-        <h2>Server Status:</h2>
-        <h3 class="serverStatusResponse" id="fetchStatus">---No Call---</h3>
-      </div>
+      <h1 class="title">Sky Tracker</h1>
       <div class="clockContainer">
         <h2 id="clock"></h2>
       </div>
@@ -52,15 +48,19 @@
       </div>
       <button id="testButton" class="requestButton">Test Request</button>
       <div class="resultsContainer">
-        <h2 class="trackingObjectName">
+        <h2 class="result trackingObjectName">
           Tracked Object: <span id="trackingObjectName">---</span>
         </h2>
-        <h2 class="coordinateResult">
+        <h2 class="result coordinateResult">
           Altitude: <span id="altitudeResult">-</span>
         </h2>
-        <h2 class="coordinateResult">
+        <h2 class="result coordinateResult">
           Azimuth: <span id="azimuthResult">-</span>
         </h2>
+        <!-- <div class="serverStatusContainer">
+          <h2>Server Status:</h2>
+          <h3 class="serverStatusResponse" id="fetchStatus">---No Call---</h3>
+        </div> -->
       </div>
     </div>
     <script src="./index.js" type="module"></script>
