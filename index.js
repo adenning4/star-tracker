@@ -63,7 +63,7 @@ function getServerData() {
 
 function getRequestUrl(coordinates, trackingObject) {
   // const serverAddress = "http://127.0.0.1:8080";
-  const serverAddress = "/.netlify/functions/server";
+  const serverAddress = "/.netlify/functions/getAltitudeAzimuthCurve";
   const latitudeRounded = Number(coordinates.latitude).toFixed(2);
   const longitudeRounded = Number(coordinates.longitude).toFixed(2);
   const coordinatesParameters = `?latitude=${latitudeRounded}&longitude=${longitudeRounded}`;
