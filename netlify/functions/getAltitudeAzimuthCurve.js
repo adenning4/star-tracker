@@ -1,41 +1,18 @@
 const degreesToRadians = Math.PI / 180;
 const radiansToDegrees = 180 / Math.PI;
 
-// ###call to the web and update database when needed
-const express = require("express");
-const logger = require("morgan");
-const serverless = require("serverless-http");
-const bodyParser = require("body-parser");
-
-// router.get("/", (req, res) => {
-//   res.writeHead(200, {
-//     "Content-Type": "application/json",
-//     // ### CORS issues need to be addressed for non-local session 5500 port
-//     // "Access-Control-Allow-Origin": "http://127.0.0.1:5500",
-//     "Access-Control-Allow-Origin": "*",
-//     Vary: "Origin",
-//   });
-//   const { latitude, longitude, observeBody } = getClientRequestUrlParameters(
-//     req.url
-//   );
-
-//   // ### Need to add sad path response
-//   getAltitudeAzimuthCurve({ latitude, longitude, observeBody }).then((data) => {
-//     res.end(
-//       JSON.stringify({
-//         data,
-//       })
-//     );
-//   });
-// });
-
 exports.handler = async function (event, context) {
+  console.log(event.queryStringParameters);
+  const parameters = event.queryStringParameters;
+  const data = await getAltitudeAzimuthCurve(parameters);
+  console.log(data);
+
   return {
+    headers: {
+      "content-type": "application/json",
+    },
     statusCode: 200,
-    body: JSON.stringify({
-      message: "Hello",
-      parameters: event.queryStringParameters,
-    }),
+    body: JSON.stringify(data),
   };
 };
 

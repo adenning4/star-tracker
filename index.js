@@ -45,16 +45,13 @@ function getServerData() {
   const trackingObject = trackingObjectSelectionEl.value;
   fetch(getRequestUrl(coordinates, trackingObject))
     .then((res) => {
-      console.log(res);
       fetchStatusEl.textContent = res.status;
       return res.json();
-      // return res.text();
     })
     .then((data) => {
-      console.log(data);
-      altitudeResultEl.textContent = data.data.altitude;
-      azimuthResultEl.textContent = data.data.azimuth;
-      trackingObjectNameEl.textContent = data.data.trackingObjectName;
+      altitudeResultEl.textContent = data.altitude;
+      azimuthResultEl.textContent = data.azimuth;
+      trackingObjectNameEl.textContent = data.trackingObjectName;
     })
     .catch((err) => {
       fetchStatusEl.textContent = err;
@@ -62,7 +59,6 @@ function getServerData() {
 }
 
 function getRequestUrl(coordinates, trackingObject) {
-  // const serverAddress = "http://127.0.0.1:8080";
   const serverAddress = "/.netlify/functions/getAltitudeAzimuthCurve";
   const latitudeRounded = Number(coordinates.latitude).toFixed(2);
   const longitudeRounded = Number(coordinates.longitude).toFixed(2);
@@ -72,8 +68,6 @@ function getRequestUrl(coordinates, trackingObject) {
 
   const requestUrl =
     serverAddress + coordinatesParameters + trackingObjectParameter;
-  // const requestUrl = serverAddress;
-  console.log(requestUrl);
 
   return requestUrl;
 }
