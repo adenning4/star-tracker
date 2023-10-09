@@ -45,9 +45,10 @@ function getServerData() {
   const trackingObject = trackingObjectSelectionEl.value;
   fetch(getRequestUrl(coordinates, trackingObject))
     .then((res) => {
+      console.log(res);
       fetchStatusEl.textContent = res.status;
-      // return res.json();
-      return res.text();
+      return res.json();
+      // return res.text();
     })
     .then((data) => {
       console.log(data);
