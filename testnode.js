@@ -2,32 +2,37 @@ const degreesToRadians = Math.PI / 180;
 const radiansToDegrees = 180 / Math.PI;
 
 // ###call to the web and update database when needed
+const express = require("express");
+const logger = require("morgan");
 
-const http = require("http");
+const app = express();
 
-http
-  .createServer((req, res) => {
-    res.writeHead(200, {
-      "Content-Type": "application/json",
-      // ### CORS issues need to be addressed for non-local session 5500 port
-      "Access-Control-Allow-Origin": "http://127.0.0.1:5500",
-      Vary: "Origin",
-    });
+app.use(logger("dev"));
 
-    const { latitude, longitude, body } = getClientRequestUrlParameters(
-      req.url
+app.use((req, res, next) => {
+  res.writeHead(200, {
+    "Content-Type": "application/json",
+    // ### CORS issues need to be addressed for non-local session 5500 port
+    "Access-Control-Allow-Origin": "http://127.0.0.1:5500",
+    Vary: "Origin",
+  });
+  next();
+});
+
+app.get("/", (req, res) => {
+  const { latitude, longitude, body } = getClientRequestUrlParameters(req.url);
+
+  // ### Need to add sad path response
+  getAltitudeAzimuthCurve({ latitude, longitude, body }).then((data) => {
+    res.end(
+      JSON.stringify({
+        data,
+      })
     );
+  });
+});
 
-    // ### Need to add sad path response
-    getAltitudeAzimuthCurve({ latitude, longitude, body }).then((data) => {
-      res.end(
-        JSON.stringify({
-          data,
-        })
-      );
-    });
-  })
-  .listen(8080);
+app.listen(8080);
 
 function getClientRequestUrlParameters(requestUrl) {
   const parameters = requestUrl.split("?")[1].split("&");

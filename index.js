@@ -10,6 +10,8 @@ const trackingObjectSelectionEl = document.getElementById(
 );
 const clockEl = document.getElementById("clock");
 
+//## addfunction to process AZ value into N, NE, SW, ect...
+
 setInterval(() => {
   const date = new Date();
   clockEl.textContent = date.toTimeString();
@@ -17,6 +19,7 @@ setInterval(() => {
 
 // ### need to build manual input option for declined/unsuccessful requests
 // ### need to create some behavior that keeps the user from requesting data til this is resolved
+//### need to add a button to grab the user's location, rather than auto grabbing it
 navigator.geolocation.getCurrentPosition(
   (pos) => {
     latitudeInputEl.value = pos.coords.latitude;

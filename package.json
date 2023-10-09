@@ -1,11 +1,11 @@
 {
   "name": "project",
   "dependencies": {
-    "reload": "latest"
+    "express": "^4.18.2",
+    "morgan": "^1.10.0"
   },
   "devDependencies": {
-    "vite": "latest",
-    "reload": "latest"
+    "vite": "latest"
   },
   "scripts": {
     "start": "vite",
