@@ -70,9 +70,9 @@ function getRequestUrl(coordinates, trackingObject) {
 
   const trackingObjectParameter = `&body=${trackingObject}`;
 
-  const requestUrl =
-    serverAddress + coordinatesParameters + trackingObjectParameter;
-  // const requestUrl = coordinatesParameters + trackingObjectParameter;
+  // const requestUrl =
+  //   serverAddress + coordinatesParameters + trackingObjectParameter;
+  const requestUrl = serverAddress;
   console.log(requestUrl);
 
   return requestUrl;
