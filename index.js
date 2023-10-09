@@ -46,18 +46,23 @@ function getServerData() {
   fetch(getRequestUrl(coordinates, trackingObject))
     .then((res) => {
       fetchStatusEl.textContent = res.status;
-      return res.json();
+      // return res.json();
+      return res.text();
     })
     .then((data) => {
+      console.log(data);
       altitudeResultEl.textContent = data.data.altitude;
       azimuthResultEl.textContent = data.data.azimuth;
       trackingObjectNameEl.textContent = data.data.trackingObjectName;
     })
-    .catch((err) => (fetchStatusEl.textContent = err));
+    .catch((err) => {
+      fetchStatusEl.textContent = err;
+    });
 }
 
 function getRequestUrl(coordinates, trackingObject) {
-  const serverAddress = "http://127.0.0.1:8080";
+  // const serverAddress = "http://127.0.0.1:8080";
+  const serverAddress = "/.netlify/functions/server";
   const latitudeRounded = Number(coordinates.latitude).toFixed(2);
   const longitudeRounded = Number(coordinates.longitude).toFixed(2);
   const coordinatesParameters = `?latitude=${latitudeRounded}&longitude=${longitudeRounded}`;
@@ -66,6 +71,8 @@ function getRequestUrl(coordinates, trackingObject) {
 
   const requestUrl =
     serverAddress + coordinatesParameters + trackingObjectParameter;
+  // const requestUrl = coordinatesParameters + trackingObjectParameter;
+  console.log(requestUrl);
 
   return requestUrl;
 }

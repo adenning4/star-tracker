@@ -4,26 +4,26 @@ const radiansToDegrees = 180 / Math.PI;
 // ###call to the web and update database when needed
 const express = require("express");
 const logger = require("morgan");
+const serverless = require("serverless-http");
+const bodyParser = require("body-parser");
 
 const app = express();
 
-app.use(logger("dev"));
-
-app.use((req, res, next) => {
+const router = express.Router();
+router.get("/", (req, res) => {
   res.writeHead(200, {
     "Content-Type": "application/json",
     // ### CORS issues need to be addressed for non-local session 5500 port
-    "Access-Control-Allow-Origin": "http://127.0.0.1:5500",
+    // "Access-Control-Allow-Origin": "http://127.0.0.1:5500",
+    "Access-Control-Allow-Origin": "*",
     Vary: "Origin",
   });
-  next();
-});
-
-app.get("/", (req, res) => {
-  const { latitude, longitude, body } = getClientRequestUrlParameters(req.url);
+  const { latitude, longitude, observeBody } = getClientRequestUrlParameters(
+    req.url
+  );
 
   // ### Need to add sad path response
-  getAltitudeAzimuthCurve({ latitude, longitude, body }).then((data) => {
+  getAltitudeAzimuthCurve({ latitude, longitude, observeBody }).then((data) => {
     res.end(
       JSON.stringify({
         data,
@@ -32,7 +32,12 @@ app.get("/", (req, res) => {
   });
 });
 
-app.listen(8080);
+// app.use(logger("dev"));
+app.use(bodyParser.json());
+app.use("/.netlify/functions/server", router);
+
+module.exports = app;
+module.exports.handler = serverless(app);
 
 function getClientRequestUrlParameters(requestUrl) {
   const parameters = requestUrl.split("?")[1].split("&");
