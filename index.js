@@ -49,9 +49,7 @@ function getServerData() {
       return res.json();
     })
     .then((data) => {
-      altitudeResultEl.textContent = data.altitude;
-      azimuthResultEl.textContent = data.azimuth;
-      trackingObjectNameEl.textContent = data.trackingObjectName;
+      console.log(data);
     })
     .catch((err) => {
       console.log(err);

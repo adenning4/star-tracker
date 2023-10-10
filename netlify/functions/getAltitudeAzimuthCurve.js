@@ -2,10 +2,8 @@ const degreesToRadians = Math.PI / 180;
 const radiansToDegrees = 180 / Math.PI;
 
 exports.handler = async function (event, context) {
-  console.log(event.queryStringParameters);
   const parameters = event.queryStringParameters;
   const data = await getAltitudeAzimuthCurve(parameters);
-  console.log(data);
 
   return {
     headers: {
@@ -29,9 +27,9 @@ function getClientRequestUrlParameters(requestUrl) {
 async function getAltitudeAzimuthCurve(parameters) {
   const { latitude, longitude, body } = parameters;
 
-  const reps = "1";
-  const intervalMagnitude = "5";
-  const intervalUnit = "minutes";
+  const reps = "60";
+  const intervalMagnitude = "1";
+  const intervalUnit = "seconds";
 
   const { date, time } = getDateAndTime();
 
@@ -48,24 +46,21 @@ async function getAltitudeAzimuthCurve(parameters) {
 
   const raDecRes = await fetch(getRaDecUrl(urlParameters));
   const raDecHTML = await raDecRes.text();
-  const { rightAscension, declination, trackingObjectName } =
-    getRaDecObjectValues(raDecHTML);
+  const { raDecTimeCurve, trackingObjectName } = getRaDecObjectValues(
+    raDecHTML,
+    reps
+  );
 
   const siderialRes = await fetch(getSiderialUrl(urlParameters));
   const siderialData = await siderialRes.json();
 
-  const { altitude, azimuth } = extractAltitudeAzimuth(
+  const altAzTimeCurve = extractAltitudeAzimuthTimeArray(
     siderialData,
     latitude,
-    rightAscension,
-    declination
+    raDecTimeCurve
   );
 
-  return {
-    altitude: altitude.toFixed(4),
-    azimuth: azimuth.toFixed(4),
-    trackingObjectName,
-  };
+  return altAzTimeCurve;
 }
 
 function getDateAndTime() {
@@ -87,7 +82,13 @@ function getRaDecUrl(urlParameters) {
     body,
   } = urlParameters;
 
-  const intervalUnitOptions = ["placeholder", "days, hours, minutes, seconds"];
+  const intervalUnitOptions = [
+    "placeholder",
+    "days",
+    "hours",
+    "minutes",
+    "seconds",
+  ];
   const formattedIntervalUnit = intervalUnitOptions.indexOf(intervalUnit);
 
   const [hours, minutes, seconds] = time.split(":");
@@ -97,29 +98,63 @@ function getRaDecUrl(urlParameters) {
 
   return url;
 }
-function getRaDecObjectValues(raDecHTML) {
-  const rightAscensionRaw = {};
-  const declinationRaw = {};
+function getRaDecObjectValues(raDecHTML, reps) {
+  const raDecTimeCurve = [];
   const htmlPre = raDecHTML.match(/<pre [\s\S]+>[\s\S]+<\Spre>/gm);
   const trackingObjectName = htmlPre[0].split(/\n/gm)[1].trim();
 
-  const dataLine = htmlPre[0].split(/\n/gm)[13];
-  const dataLineParts = dataLine.split(/\s{3,}/);
+  for (let i = 0; i < reps; i++) {
+    const rightAscensionRaw = {};
+    const declinationRaw = {};
 
-  rightAscensionRaw.hours = dataLineParts[1].split(" ")[0];
-  rightAscensionRaw.minutes = dataLineParts[1].split(" ")[1];
-  rightAscensionRaw.seconds = dataLineParts[1].split(" ")[2];
+    const dataLine = htmlPre[0].split(/\n/gm)[13 + i];
+    const dataLineParts = dataLine.split(/\s{3,}/);
 
-  const declinationData = dataLineParts[2].split(/\+|-/)[1].trim();
-  declinationRaw.degrees = declinationData.split(" ")[0];
-  declinationRaw.minutes = declinationData.split(" ")[1];
-  declinationRaw.seconds = declinationData.split(" ")[2];
-  declinationRaw.sign = dataLineParts[2].match(/\+|-/)[0];
+    const timestamp = getTimestamp(dataLineParts[0]);
 
-  const rightAscension = rightAscensionToDecimalDegrees(rightAscensionRaw);
-  const declination = declinationToDecimalDeclination(declinationRaw);
+    rightAscensionRaw.hours = dataLineParts[1].split(" ")[0];
+    rightAscensionRaw.minutes = dataLineParts[1].split(" ")[1];
+    rightAscensionRaw.seconds = dataLineParts[1].split(" ")[2];
 
-  return { rightAscension, declination, trackingObjectName };
+    const declinationData = dataLineParts[2].split(/\+|-/)[1].trim();
+    declinationRaw.degrees = declinationData.split(" ")[0];
+    declinationRaw.minutes = declinationData.split(" ")[1];
+    declinationRaw.seconds = declinationData.split(" ")[2];
+    declinationRaw.sign = dataLineParts[2].match(/\+|-/)[0];
+
+    const rightAscension = rightAscensionToDecimalDegrees(rightAscensionRaw);
+    const declination = declinationToDecimalDeclination(declinationRaw);
+
+    raDecTimeCurve.push({ timestamp, rightAscension, declination });
+  }
+  return { raDecTimeCurve, trackingObjectName };
+}
+
+function getTimestamp(timeData) {
+  const timeDataParts = timeData.split(" ");
+  const year = timeDataParts[0];
+  const monthName = timeDataParts[1];
+  const monthNameArray = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const month = monthNameArray.indexOf(monthName);
+  const day = Number(timeDataParts[2]);
+  const hourMinuteSecondsParts = timeDataParts[3].split(":");
+  const hour = Number(hourMinuteSecondsParts[0]);
+  const minute = Number(hourMinuteSecondsParts[1]);
+  const second = Number(hourMinuteSecondsParts[2].split(".")[0]);
+  return new Date(year, month, day, hour, minute, second);
 }
 
 function rightAscensionToDecimalDegrees({ hours, minutes, seconds }) {
@@ -152,29 +187,52 @@ function getSiderialUrl(urlParameters) {
   return url;
 }
 
-function extractAltitudeAzimuth(
+function extractAltitudeAzimuthTimeArray(
   siderialData,
   latitude,
-  rightAscension,
-  declination
+  raDecTimeCurve
 ) {
-  const localMeanSiderialTime = siderialData.properties.data[0].lmst;
-  const localMeanSiderialTimeDecimal = timeToDecimalHours(
-    localMeanSiderialTime
-  );
-  const hourAngle = rightAscensionDegreesToHourAngle(
-    rightAscension,
-    localMeanSiderialTimeDecimal
-  );
-  const altitude = calculateAltitudeDegrees(declination, latitude, hourAngle);
-  const azimuth = calculateAzimuthDegrees(
-    declination,
-    latitude,
-    altitude,
-    hourAngle
+  const rightAscensionArray = raDecTimeCurve.map((item) => item.rightAscension);
+  const declinationArray = raDecTimeCurve.map((item) => item.declination);
+  const timestampArray = raDecTimeCurve.map((item) => item.timestamp);
+  const localMeanSiderialTimeDecimalArray = siderialData.properties.data.map(
+    (item) => {
+      return timeToDecimalHours(item.lmst);
+    }
   );
 
-  return { altitude, azimuth };
+  const hourAngleArray = rightAscensionArray.map((rightAscension, index) => {
+    return rightAscensionDegreesToHourAngle(
+      rightAscension,
+      localMeanSiderialTimeDecimalArray[index]
+    );
+  });
+
+  const altitudeArray = declinationArray.map((declination, index) => {
+    return calculateAltitudeDegrees(
+      declination,
+      latitude,
+      hourAngleArray[index]
+    );
+  });
+
+  const azimuthArray = declinationArray.map((declination, index) => {
+    return calculateAzimuthDegrees(
+      declination,
+      latitude,
+      altitudeArray[index],
+      hourAngleArray[index]
+    );
+  });
+
+  const altitudeAzimuthTimeArray = timestampArray.map((timestamp, index) => {
+    return {
+      timestamp,
+      altitude: altitudeArray[index],
+      azimuth: azimuthArray[index],
+    };
+  });
+  return altitudeAzimuthTimeArray;
 }
 
 function timeToDecimalHours(timeStr) {
