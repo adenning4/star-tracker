@@ -14,14 +14,6 @@ exports.handler = async function (event, context) {
   };
 };
 
-function getClientRequestUrlParameters(requestUrl) {
-  const parameters = requestUrl.split("?")[1].split("&");
-  const latitude = parameters[0].split("=")[1];
-  const longitude = parameters[1].split("=")[1];
-  const body = parameters[2].split("=")[1];
-  return { latitude, longitude, body };
-}
-
 // ###call the usno api and return a list of 60 alt/az values with timestamps,
 // ###separate by 1 minute for now, so 1 hours worth for a selected object
 async function getAltitudeAzimuthCurve(parameters) {
@@ -110,7 +102,7 @@ function getRaDecObjectValues(raDecHTML, reps) {
     const dataLine = htmlPre[0].split(/\n/gm)[13 + i];
     const dataLineParts = dataLine.split(/\s{3,}/);
 
-    const timestamp = getTimestamp(dataLineParts[0]);
+    const timestamp = getTimestampFromHtml(dataLineParts[0]);
 
     rightAscensionRaw.hours = dataLineParts[1].split(" ")[0];
     rightAscensionRaw.minutes = dataLineParts[1].split(" ")[1];
@@ -130,7 +122,7 @@ function getRaDecObjectValues(raDecHTML, reps) {
   return { raDecTimeCurve, trackingObjectName };
 }
 
-function getTimestamp(timeData) {
+function getTimestampFromHtml(timeData) {
   const timeDataParts = timeData.split(" ");
   const year = timeDataParts[0];
   const monthName = timeDataParts[1];
@@ -192,46 +184,28 @@ function extractAltitudeAzimuthTimeArray(
   latitude,
   raDecTimeCurve
 ) {
-  const rightAscensionArray = raDecTimeCurve.map((item) => item.rightAscension);
-  const declinationArray = raDecTimeCurve.map((item) => item.declination);
-  const timestampArray = raDecTimeCurve.map((item) => item.timestamp);
-  const localMeanSiderialTimeDecimalArray = siderialData.properties.data.map(
-    (item) => {
-      return timeToDecimalHours(item.lmst);
-    }
-  );
-
-  const hourAngleArray = rightAscensionArray.map((rightAscension, index) => {
-    return rightAscensionDegreesToHourAngle(
-      rightAscension,
-      localMeanSiderialTimeDecimalArray[index]
+  const altitudeAzimuthTimeArray = raDecTimeCurve.map((item, index) => {
+    const hourAngle = rightAscensionDegreesToHourAngle(
+      item.rightAscension,
+      timeToDecimalHours(siderialData.properties.data[index].lmst)
     );
-  });
-
-  const altitudeArray = declinationArray.map((declination, index) => {
-    return calculateAltitudeDegrees(
-      declination,
+    const altitudeValue = calculateAltitudeDegrees(
+      item.declination,
       latitude,
-      hourAngleArray[index]
+      hourAngle
     );
-  });
-
-  const azimuthArray = declinationArray.map((declination, index) => {
-    return calculateAzimuthDegrees(
-      declination,
-      latitude,
-      altitudeArray[index],
-      hourAngleArray[index]
-    );
-  });
-
-  const altitudeAzimuthTimeArray = timestampArray.map((timestamp, index) => {
     return {
-      timestamp,
-      altitude: altitudeArray[index],
-      azimuth: azimuthArray[index],
+      timestamp: item.timestamp,
+      altitude: altitudeValue,
+      azimuth: calculateAzimuthDegrees(
+        item.declination,
+        latitude,
+        altitudeValue,
+        hourAngle
+      ),
     };
   });
+
   return altitudeAzimuthTimeArray;
 }
 
