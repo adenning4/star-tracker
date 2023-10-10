@@ -19,7 +19,7 @@ exports.handler = async function (event, context) {
 async function getAltitudeAzimuthCurve(parameters) {
   const { latitude, longitude, body } = parameters;
 
-  const reps = "60";
+  const reps = "10";
   const intervalMagnitude = "1";
   const intervalUnit = "seconds";
 
@@ -52,7 +52,7 @@ async function getAltitudeAzimuthCurve(parameters) {
     raDecTimeCurve
   );
 
-  return altAzTimeCurve;
+  return { trackingObjectName, altAzTimeCurve };
 }
 
 function getDateAndTime() {

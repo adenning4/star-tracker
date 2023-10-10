@@ -49,12 +49,29 @@ function getServerData() {
       return res.json();
     })
     .then((data) => {
-      console.log(data);
+      trackingObjectNameEl.textContent = data.trackingObjectName;
+      displayLiveCoordinates(data.altAzTimeCurve);
     })
     .catch((err) => {
       console.log(err);
       // fetchStatusEl.textContent = err;
     });
+}
+
+function displayLiveCoordinates(altAzTimeCurveArray) {
+  let i = 0;
+  console.log(`length: ${altAzTimeCurveArray.length}`);
+  const intervalId = setInterval(() => {
+    console.log(`i: ${i}`);
+    if (i === altAzTimeCurveArray.length) {
+      clearInterval(intervalId);
+      console.log("end of data");
+      return;
+    }
+    altitudeResultEl.textContent = altAzTimeCurveArray[i].altitude;
+    azimuthResultEl.textContent = altAzTimeCurveArray[i].azimuth;
+    i++;
+  }, 1000);
 }
 
 function getRequestUrl(coordinates, trackingObject) {
