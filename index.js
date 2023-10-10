@@ -9,13 +9,19 @@ const trackingObjectSelectionEl = document.getElementById(
   "trackingObjectSelection"
 );
 const clockEl = document.getElementById("clock");
+const dataTimestampEl = document.getElementById("dataTimestamp");
 
-//## addfunction to process AZ value into N, NE, SW, ect...
+//## addfunction to process AZ value into N, NE, SW, ect... may do on server side
+let mainClockId = null;
 
-setInterval(() => {
-  const date = new Date();
-  clockEl.textContent = date.toTimeString();
-}, 1000);
+function runMainClock() {
+  mainClockId = setInterval(() => {
+    const date = new Date();
+    clockEl.textContent = date.toTimeString();
+  }, 1000);
+}
+
+runMainClock();
 
 // ### need to build manual input option for declined/unsuccessful requests
 // ### need to create some behavior that keeps the user from requesting data til this is resolved
@@ -49,6 +55,7 @@ function getServerData() {
       return res.json();
     })
     .then((data) => {
+      console.log(data);
       trackingObjectNameEl.textContent = data.trackingObjectName;
       displayLiveCoordinates(data.altAzTimeCurve);
     })
@@ -58,18 +65,28 @@ function getServerData() {
     });
 }
 
+//### need to synchronize with system time and clock
 function displayLiveCoordinates(altAzTimeCurveArray) {
+  const dataLength = altAzTimeCurveArray.length;
   let i = 0;
-  console.log(`length: ${altAzTimeCurveArray.length}`);
+  clearInterval(mainClockId);
   const intervalId = setInterval(() => {
-    console.log(`i: ${i}`);
-    if (i === altAzTimeCurveArray.length) {
+    if (i === dataLength) {
       clearInterval(intervalId);
-      console.log("end of data");
+      runMainClock();
       return;
     }
-    altitudeResultEl.textContent = altAzTimeCurveArray[i].altitude;
-    azimuthResultEl.textContent = altAzTimeCurveArray[i].azimuth;
+    const mainClockDate = new Date();
+    clockEl.textContent = mainClockDate.toTimeString();
+    const timestampDate = new Date(altAzTimeCurveArray[i].time);
+    // ### Need to synchronize the usno timestamps with any local machine time for proper synchronization
+    const dataDelaySeconds = Math.round((mainClockDate - timestampDate) / 1000);
+    // console.log((mainClockDate - timestampDate) / 1000);
+    // console.log(dataDelaySeconds);
+    i += dataDelaySeconds;
+    dataTimestampEl.textContent = timestampDate.toTimeString();
+    altitudeResultEl.textContent = altAzTimeCurveArray[i].alt;
+    azimuthResultEl.textContent = altAzTimeCurveArray[i].az;
     i++;
   }, 1000);
 }
@@ -82,8 +99,20 @@ function getRequestUrl(coordinates, trackingObject) {
 
   const trackingObjectParameter = `&body=${trackingObject}`;
 
+  const { date, time } = getDateAndTime();
+  const userTimeParameters = `&date=${date}&time=${time}`;
   const requestUrl =
-    serverAddress + coordinatesParameters + trackingObjectParameter;
+    serverAddress +
+    coordinatesParameters +
+    trackingObjectParameter +
+    userTimeParameters;
 
   return requestUrl;
+}
+
+function getDateAndTime() {
+  const newDate = new Date();
+  const fullDate = newDate.toJSON().split("T");
+
+  return { date: fullDate[0], time: fullDate[1].split(".")[0] };
 }

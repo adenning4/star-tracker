@@ -1,6 +1,8 @@
 const degreesToRadians = Math.PI / 180;
 const radiansToDegrees = 180 / Math.PI;
 
+// ### Need more sophisticated server handling
+// ### Client hangs while server performs api calls and data preparation
 exports.handler = async function (event, context) {
   const parameters = event.queryStringParameters;
   const data = await getAltitudeAzimuthCurve(parameters);
@@ -18,8 +20,9 @@ exports.handler = async function (event, context) {
 // ###separate by 1 minute for now, so 1 hours worth for a selected object
 async function getAltitudeAzimuthCurve(parameters) {
   const { latitude, longitude, body } = parameters;
+  // const { latitude, longitude, body, date, time } = parameters;
 
-  const reps = "10";
+  const reps = "60";
   const intervalMagnitude = "1";
   const intervalUnit = "seconds";
 
@@ -35,7 +38,6 @@ async function getAltitudeAzimuthCurve(parameters) {
     intervalUnit,
     body,
   };
-
   const raDecRes = await fetch(getRaDecUrl(urlParameters));
   const raDecHTML = await raDecRes.text();
   const { raDecTimeCurve, trackingObjectName } = getRaDecObjectValues(
@@ -146,7 +148,9 @@ function getTimestampFromHtml(timeData) {
   const hour = Number(hourMinuteSecondsParts[0]);
   const minute = Number(hourMinuteSecondsParts[1]);
   const second = Number(hourMinuteSecondsParts[2].split(".")[0]);
-  return new Date(year, month, day, hour, minute, second);
+  // Calling this is screwing up the date
+  // return new Date(year, month, day, hour, minute, second);
+  return new Date(Date.UTC(year, month, day, hour, minute, second));
 }
 
 function rightAscensionToDecimalDegrees({ hours, minutes, seconds }) {
@@ -195,14 +199,14 @@ function extractAltitudeAzimuthTimeArray(
       hourAngle
     );
     return {
-      timestamp: item.timestamp,
-      altitude: altitudeValue,
-      azimuth: calculateAzimuthDegrees(
+      time: item.timestamp,
+      alt: altitudeValue.toFixed(4),
+      az: calculateAzimuthDegrees(
         item.declination,
         latitude,
         altitudeValue,
         hourAngle
-      ),
+      ).toFixed(4),
     };
   });
 
