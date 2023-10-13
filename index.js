@@ -10,6 +10,7 @@ const trackingObjectSelectionEl = document.getElementById(
 );
 const clockEl = document.getElementById("clock");
 const dataTimestampEl = document.getElementById("dataTimestamp");
+const workerButtonEl = document.getElementById("testWorker");
 
 //## addfunction to process AZ value into N, NE, SW, ect... may do on server side
 let mainClockId = null;
@@ -43,26 +44,49 @@ testButtonEl.addEventListener("click", () => {
   getServerData();
 });
 
-function getServerData() {
-  const coordinates = {
-    latitude: latitudeInputEl.value,
-    longitude: longitudeInputEl.value,
+if (window.Worker) {
+  const myWorker = new Worker("worker.js");
+
+  workerButtonEl.addEventListener("click", () => {
+    const workerPrompt = {
+      coordinates: {
+        latitude: latitudeInputEl.value,
+        longitude: longitudeInputEl.value,
+      },
+      trackingObject: trackingObjectSelectionEl.value,
+    };
+
+    myWorker.postMessage(JSON.stringify(workerPrompt));
+  });
+
+  myWorker.onmessage = (e) => {
+    const { trackingObjectName, altAzTimeCurve } = JSON.parse(e.data);
+    trackingObjectNameEl.textContent = trackingObjectName;
+    displayLiveCoordinates(altAzTimeCurve);
   };
-  const trackingObject = trackingObjectSelectionEl.value;
-  fetch(getRequestUrl(coordinates, trackingObject))
-    .then((res) => {
-      // fetchStatusEl.textContent = res.status;
-      return res.json();
-    })
-    .then((data) => {
-      console.log(data);
-      trackingObjectNameEl.textContent = data.trackingObjectName;
-      displayLiveCoordinates(data.altAzTimeCurve);
-    })
-    .catch((err) => {
-      console.log(err);
-      // fetchStatusEl.textContent = err;
-    });
+}
+
+function getServerData() {
+  console.log("disconnected");
+  // const coordinates = {
+  //   latitude: latitudeInputEl.value,
+  //   longitude: longitudeInputEl.value,
+  // };
+  // const trackingObject = trackingObjectSelectionEl.value;
+  // fetch(getRequestUrl(coordinates, trackingObject))
+  //   .then((res) => {
+  //     // fetchStatusEl.textContent = res.status;
+  //     return res.json();
+  //   })
+  //   .then((data) => {
+  //     console.log(data);
+  //     trackingObjectNameEl.textContent = data.trackingObjectName;
+  //     displayLiveCoordinates(data.altAzTimeCurve);
+  //   })
+  //   .catch((err) => {
+  //     console.log(err);
+  //     // fetchStatusEl.textContent = err;
+  //   });
 }
 
 //### need to synchronize with system time and clock
@@ -131,28 +155,28 @@ function getAzimuthCardinalDirections(azimuthDegrees) {
   }
 }
 
-function getRequestUrl(coordinates, trackingObject) {
-  const serverAddress = "/.netlify/functions/getAltitudeAzimuthCurve";
-  const latitudeRounded = Number(coordinates.latitude).toFixed(2);
-  const longitudeRounded = Number(coordinates.longitude).toFixed(2);
-  const coordinatesParameters = `?latitude=${latitudeRounded}&longitude=${longitudeRounded}`;
+// function getRequestUrl(coordinates, trackingObject) {
+//   const serverAddress = "/.netlify/functions/getAltitudeAzimuthCurve";
+//   const latitudeRounded = Number(coordinates.latitude).toFixed(2);
+//   const longitudeRounded = Number(coordinates.longitude).toFixed(2);
+//   const coordinatesParameters = `?latitude=${latitudeRounded}&longitude=${longitudeRounded}`;
 
-  const trackingObjectParameter = `&body=${trackingObject}`;
+//   const trackingObjectParameter = `&body=${trackingObject}`;
 
-  const { date, time } = getDateAndTime();
-  const userTimeParameters = `&date=${date}&time=${time}`;
-  const requestUrl =
-    serverAddress +
-    coordinatesParameters +
-    trackingObjectParameter +
-    userTimeParameters;
+//   const { date, time } = getDateAndTime();
+//   const userTimeParameters = `&date=${date}&time=${time}`;
+//   const requestUrl =
+//     serverAddress +
+//     coordinatesParameters +
+//     trackingObjectParameter +
+//     userTimeParameters;
 
-  return requestUrl;
-}
+//   return requestUrl;
+// }
 
-function getDateAndTime() {
-  const newDate = new Date();
-  const fullDate = newDate.toJSON().split("T");
+// function getDateAndTime() {
+//   const newDate = new Date();
+//   const fullDate = newDate.toJSON().split("T");
 
-  return { date: fullDate[0], time: fullDate[1].split(".")[0] };
-}
+//   return { date: fullDate[0], time: fullDate[1].split(".")[0] };
+// }
