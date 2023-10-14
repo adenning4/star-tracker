@@ -9,16 +9,12 @@ const connections = [];
 onmessage = (e) => {
   switch (e.data.directive) {
     case "startTracking":
-      //   console.log(`Message recieved from index`);
-      //   console.log("mainWorker calling fetchWorker");
       fetchWorker.postMessage(JSON.stringify(e.data.body));
       break;
   }
 };
 
 fetchWorker.onmessage = (e) => {
-  //   console.log(`Message from fetchWorker to mainWorker`);
-  //   console.log(e.data);
   liveDisplayWorker.postMessage(e.data);
 };
 

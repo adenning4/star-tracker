@@ -1,27 +1,29 @@
 onmessage = (e) => {
-  console.log("live display worker recieved the data!");
   const data = JSON.parse(e.data);
   displayLiveCoordinates(data.altAzTimeCurve);
 };
 
 //### need to synchronize with system time and clock
 function displayLiveCoordinates(altAzTimeCurveArray) {
-  console.log(altAzTimeCurveArray);
   const dataLength = altAzTimeCurveArray.length;
   let i = 0;
-  //   clearInterval(mainClockId);
   const intervalId = setInterval(() => {
     if (i === dataLength) {
       clearInterval(intervalId);
-      //   runMainClock();
       return;
     }
     const mainClockDate = new Date();
-    // clockEl.textContent = mainClockDate.toTimeString();
+
+    // synchronize the usno timestamps with any local machine time
+    // synchronization only expected needed on first pass
+    if (i === 0) {
+      const timestampDateSyncRef = new Date(altAzTimeCurveArray[i].time);
+      const dataDelaySeconds = Math.round(
+        (mainClockDate - timestampDateSyncRef) / 1000
+      );
+      i += dataDelaySeconds;
+    }
     const timestampDate = new Date(altAzTimeCurveArray[i].time);
-    // ### Need to synchronize the usno timestamps with any local machine time for proper synchronization
-    const dataDelaySeconds = Math.round((mainClockDate - timestampDate) / 1000);
-    i += dataDelaySeconds;
     const liveData = {
       dataTimeStamp: timestampDate.toTimeString(),
       altitude: altAzTimeCurveArray[i].alt,

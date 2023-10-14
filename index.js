@@ -52,13 +52,11 @@ if (window.Worker) {
         trackingObject: trackingObjectSelectionEl.value,
       },
     };
-    console.log(`Sending message from index to mainWorker`);
     mainWorker.postMessage(dataPrompt);
   });
 
   mainWorker.onmessage = (e) => {
     const currentData = JSON.parse(e.data);
-    // console.log(currentData);
     dataTimestampEl.textContent = currentData.dataTimeStamp;
     altitudeResultEl.textContent = currentData.altitude;
     azimuthResultEl.textContent = currentData.azimuth;

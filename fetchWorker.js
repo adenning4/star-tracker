@@ -1,11 +1,9 @@
 onmessage = (e) => {
-  console.log(e.data);
   const { coordinates, trackingObject } = JSON.parse(e.data);
   const preparedResponse = {};
 
   fetch(getRequestUrl(coordinates, trackingObject))
     .then((res) => {
-      console.log(`Server reponse in worker: ${res.status}`);
       return res.json();
     })
     .then((data) => {
