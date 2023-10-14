@@ -1,6 +1,5 @@
-onmessage = function (e) {
-  console.log(`Worker - Received from main: ${e.data}`);
-
+onmessage = (e) => {
+  console.log(e.data);
   const { coordinates, trackingObject } = JSON.parse(e.data);
   const preparedResponse = {};
 
@@ -10,18 +9,14 @@ onmessage = function (e) {
       return res.json();
     })
     .then((data) => {
-      console.log(data);
       preparedResponse.trackingObjectName = data.trackingObjectName;
       preparedResponse.altAzTimeCurve = data.altAzTimeCurve;
-      // displayLiveCoordinates(data.altAzTimeCurve);
       this.postMessage(JSON.stringify(preparedResponse));
     })
     .catch((err) => {
       console.log(err);
       console.log(`Server error reponse in worker: ${err}`);
     });
-
-  // this.postMessage("Hello from worker!");
 };
 
 function getRequestUrl(coordinates, trackingObject) {
