@@ -18,6 +18,7 @@ const latitudeInputEl = document.getElementById("latitudeInput");
 const longitudeInputEl = document.getElementById("longitudeInput");
 const altitudeResultEl = document.getElementById("altitudeResult");
 const azimuthResultEl = document.getElementById("azimuthResult");
+const cardinalResultEl = document.getElementById("cardinalResult");
 const trackingObjectNameEl = document.getElementById("trackingObjectName");
 const trackingObjectSelectionEl = document.getElementById(
   "trackingObjectSelection"
@@ -91,6 +92,7 @@ if (window.Worker) {
         dataTimestampEl.textContent = messageFromIndex.body.dataTimeStamp;
         altitudeResultEl.textContent = messageFromIndex.body.altitude;
         azimuthResultEl.textContent = messageFromIndex.body.azimuth;
+        cardinalResultEl.textContent = messageFromIndex.body.cardinal;
         break;
       case "addFetchCount":
         set(numberOfFetchesInDB, fetchCount + 1);

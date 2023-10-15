@@ -198,15 +198,17 @@ function extractAltitudeAzimuthTimeArray(
       latitude,
       hourAngle
     );
+    const azimuthValue = calculateAzimuthDegrees(
+      item.declination,
+      latitude,
+      altitudeValue,
+      hourAngle
+    );
     return {
       time: item.timestamp,
       alt: altitudeValue.toFixed(4),
-      az: calculateAzimuthDegrees(
-        item.declination,
-        latitude,
-        altitudeValue,
-        hourAngle
-      ).toFixed(4),
+      az: azimuthValue.toFixed(4),
+      cardinal: getAzimuthCardinalDirection(azimuthValue),
     };
   });
 
@@ -267,5 +269,28 @@ function calculateAzimuthDegrees(
     return angle * radiansToDegrees;
   } else {
     return 360 - angle * radiansToDegrees;
+  }
+}
+
+function getAzimuthCardinalDirection(azimuthDegrees) {
+  if (
+    (azimuthDegrees >= 0 && azimuthDegrees < 22.5) ||
+    (azimuthDegrees >= 337.5 && azimuthDegrees <= 360)
+  ) {
+    return "N";
+  } else if (azimuthDegrees >= 22.5 && azimuthDegrees < 67.5) {
+    return "NE";
+  } else if (azimuthDegrees >= 67.5 && azimuthDegrees < 90) {
+    return "E";
+  } else if (azimuthDegrees >= 112.5 && azimuthDegrees < 157.5) {
+    return "SE";
+  } else if (azimuthDegrees >= 157.5 && azimuthDegrees < 202.5) {
+    return "S";
+  } else if (azimuthDegrees >= 202.5 && azimuthDegrees < 247.5) {
+    return "SW";
+  } else if (azimuthDegrees >= 247.5 && azimuthDegrees < 292.5) {
+    return "W";
+  } else if (azimuthDegrees >= 292.5 && azimuthDegrees < 337.5) {
+    return "NW";
   }
 }
