@@ -25,6 +25,7 @@ runMainClock();
 // ### need to build manual input option for declined/unsuccessful requests
 // ### need to create some behavior that keeps the user from requesting data til this is resolved
 //### need to add a button to grab the user's location, rather than auto grabbing it
+// May be able to move this to a worker
 navigator.geolocation.getCurrentPosition(
   (pos) => {
     latitudeInputEl.value = pos.coords.latitude;
@@ -38,6 +39,7 @@ navigator.geolocation.getCurrentPosition(
   }
 );
 
+// #what if no workers?
 if (window.Worker) {
   const mainWorker = new Worker("mainWorker.js");
 
