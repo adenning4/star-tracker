@@ -2,6 +2,9 @@ onmessage = (e) => {
   const { coordinates, trackingObject } = JSON.parse(e.data);
   const preparedResponse = {};
 
+  // Add fetching logic depending on number of fetches this month
+  // ie. to fetch or not to fetch?
+
   fetch(getRequestUrl(coordinates, trackingObject))
     .then((res) => {
       return res.json();

@@ -1,3 +1,19 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+import {
+  getDatabase,
+  ref,
+  set,
+  onValue,
+} from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+
+const appSettings = {
+  databaseURL: "https://star-tracker-1bd78-default-rtdb.firebaseio.com/",
+};
+
+const app = initializeApp(appSettings);
+const database = getDatabase(app);
+const numberOfFetchesInDB = ref(database, "numberOfFetches");
+
 const latitudeInputEl = document.getElementById("latitudeInput");
 const longitudeInputEl = document.getElementById("longitudeInput");
 const altitudeResultEl = document.getElementById("altitudeResult");
@@ -9,6 +25,8 @@ const trackingObjectSelectionEl = document.getElementById(
 const clockEl = document.getElementById("clock");
 const dataTimestampEl = document.getElementById("dataTimestamp");
 const mainWorkerButtonEl = document.getElementById("mainWorkerButton");
+
+let fetchCount = null;
 
 //## addfunction to process AZ value into N, NE, SW, ect... may do on server side
 let mainClockId = null;
@@ -43,6 +61,15 @@ navigator.geolocation.getCurrentPosition(
 if (window.Worker) {
   const mainWorker = new Worker("mainWorker.js");
 
+  onValue(numberOfFetchesInDB, (snapshot) => {
+    fetchCount = snapshot.val();
+    const fetchCountUpdate = {
+      directive: "updateFetchCount",
+      body: fetchCount,
+    };
+    mainWorker.postMessage(JSON.stringify(fetchCountUpdate));
+  });
+
   mainWorkerButtonEl.addEventListener("click", () => {
     const dataPrompt = {
       directive: "startTracking",
@@ -54,13 +81,20 @@ if (window.Worker) {
         trackingObject: trackingObjectSelectionEl.value,
       },
     };
-    mainWorker.postMessage(dataPrompt);
+    mainWorker.postMessage(JSON.stringify(dataPrompt));
   });
 
   mainWorker.onmessage = (e) => {
-    const currentData = JSON.parse(e.data);
-    dataTimestampEl.textContent = currentData.dataTimeStamp;
-    altitudeResultEl.textContent = currentData.altitude;
-    azimuthResultEl.textContent = currentData.azimuth;
+    const indexMessage = JSON.parse(e.data);
+    switch (indexMessage.directive) {
+      case "displayLiveData":
+        dataTimestampEl.textContent = indexMessage.body.dataTimeStamp;
+        altitudeResultEl.textContent = indexMessage.body.altitude;
+        azimuthResultEl.textContent = indexMessage.body.azimuth;
+        break;
+      case "addFetchCount":
+        set(numberOfFetchesInDB, fetchCount + 1);
+        break;
+    }
   };
 }
