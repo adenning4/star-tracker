@@ -9,6 +9,7 @@ onmessage = (e) => {
       const altAzTimeCurveArray = messageFromMainWorker.body.altAzTimeCurve;
       const dataLength = altAzTimeCurveArray.length;
       let i = 0;
+      let isFetchingMore = false;
       intervalId = setInterval(() => {
         if (i === dataLength) {
           clearInterval(intervalId);
@@ -32,9 +33,9 @@ onmessage = (e) => {
           altitude: altAzTimeCurveArray[i].alt,
           azimuth: altAzTimeCurveArray[i].az,
         };
-        // ### need to change logic depending on chosen interval size and amount left considering average fetch times. This logic assumes 30 seconds of data supplied at 1 second intervals
-        // ###this is being sent and ignored in some cases, trim the fat!
-        if (i > 20) {
+        // ### need to change logic depending on chosen interval size and amount left considering average fetch times (2-4 seconds). This logic assumes 30 seconds of data supplied at 1 second intervals
+        if (!isFetchingMore && i > 20) {
+          isFetchingMore = true;
           const messageToMainWorker = {
             directive: "fetchMoreData",
             body: null,
