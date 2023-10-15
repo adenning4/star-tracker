@@ -5,51 +5,91 @@ const liveDisplayWorker = new Worker("liveDisplayWorker");
 
 let fetchDataBody = {};
 let isFetchingMore = false;
-let fetchCount = null;
+let serverlessFetchCount = null;
+const maxFetchCount = 100;
 
 // This onmessage will always be from the parent, i.e index.js
 onmessage = (e) => {
-  const indexMessage = JSON.parse(e.data);
-  switch (indexMessage.directive) {
+  const messageFromIndex = JSON.parse(e.data);
+  switch (messageFromIndex.directive) {
     case "startTracking":
-      if (fetchCount < 45) {
-        fetchDataBody = indexMessage.body;
-        fetchWorker.postMessage(JSON.stringify(fetchDataBody));
+      if (serverlessFetchCount < maxFetchCount) {
+        fetchDataBody = messageFromIndex.body;
+        const messageToFetchWorker = {
+          directive: "serverlessFetch",
+          body: fetchDataBody,
+        };
+        fetchWorker.postMessage(JSON.stringify(messageToFetchWorker));
       } else {
-        console.log(`fetch count too high: ${fetchCount}`);
+        console.log(`fetch count too high: ${serverlessFetchCount}`);
+        const messageToFetchWorker = {
+          directive: "proxyFetch",
+          body: fetchDataBody,
+        };
+        fetchWorker.postMessage(JSON.stringify(messageToFetchWorker));
       }
       break;
+
     case "updateFetchCount":
-      fetchCount = indexMessage.body;
-      console.log(fetchCount);
+      serverlessFetchCount = messageFromIndex.body;
+      console.log(serverlessFetchCount);
   }
 };
 
 fetchWorker.onmessage = (e) => {
-  const mainMessage = {
-    directive: "addFetchCount",
-    body: null,
-  };
-  postMessage(JSON.stringify(mainMessage));
-  isFetchingMore = false;
-  liveDisplayWorker.postMessage(e.data);
+  const messageFromFetchWorker = JSON.parse(e.data);
+
+  switch (messageFromFetchWorker.directive) {
+    case "useUpdatedData":
+      isFetchingMore = false;
+
+      const messageToIndex = {
+        directive: "addFetchCount",
+        body: null,
+      };
+      postMessage(JSON.stringify(messageToIndex));
+
+      const messageToLiveDisplayWorker = {
+        directive: "synchronizeDataArray",
+        body: messageFromFetchWorker.body,
+      };
+      liveDisplayWorker.postMessage(JSON.stringify(messageToLiveDisplayWorker));
+
+      break;
+  }
 };
 
 liveDisplayWorker.onmessage = (e) => {
-  const liveDisplayWorkerResult = JSON.parse(e.data);
-  if (liveDisplayWorkerResult.isDataShort && !isFetchingMore) {
-    isFetchingMore = true;
-    console.log("data is short, fetching more...");
-    if (fetchCount < 45) {
-      fetchWorker.postMessage(JSON.stringify(fetchDataBody));
-    } else {
-      console.log(`fetch count too high: ${fetchCount}`);
-    }
+  const messageFromLiveDisplayWorker = JSON.parse(e.data);
+
+  switch (messageFromLiveDisplayWorker.directive) {
+    case "displayLiveData":
+      console.log("displayLiveData");
+
+      const messageToIndex = {
+        directive: "displayLiveData",
+        body: messageFromLiveDisplayWorker.body,
+      };
+      postMessage(JSON.stringify(messageToIndex));
+
+      break;
+
+    case "fetchMoreData":
+      if (!isFetchingMore) {
+        console.log("fetchMoreData");
+
+        isFetchingMore = true;
+        if (serverlessFetchCount < maxFetchCount) {
+          const messageToFetchWorker = {
+            directive: "serverlessFetch",
+            body: fetchDataBody,
+          };
+          fetchWorker.postMessage(JSON.stringify(messageToFetchWorker));
+        } else {
+          console.log(`fetch count too high: ${serverlessFetchCount}`);
+        }
+      }
+
+      break;
   }
-  const mainMessage = {
-    directive: "displayLiveData",
-    body: liveDisplayWorkerResult.liveData,
-  };
-  // postMessage(JSON.stringify(liveDisplayWorkerResult.liveData));
-  postMessage(JSON.stringify(mainMessage));
 };

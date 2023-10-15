@@ -1,83 +1,58 @@
 let intervalId = null;
 onmessage = (e) => {
-  const data = JSON.parse(e.data);
-  // displayLiveCoordinates(data.altAzTimeCurve);
+  const messageFromMainWorker = JSON.parse(e.data);
+  switch (messageFromMainWorker.directive) {
+    case "synchronizeDataArray":
+      console.log("synchronizeDataArray");
 
-  const altAzTimeCurveArray = data.altAzTimeCurve;
-  const dataLength = altAzTimeCurveArray.length;
-  let i = 0;
-  clearInterval(intervalId);
-  intervalId = setInterval(() => {
-    if (i === dataLength) {
       clearInterval(intervalId);
-      return;
-    }
-    const mainClockDate = new Date();
+      const altAzTimeCurveArray = messageFromMainWorker.body.altAzTimeCurve;
+      const dataLength = altAzTimeCurveArray.length;
+      let i = 0;
+      intervalId = setInterval(() => {
+        if (i === dataLength) {
+          clearInterval(intervalId);
+          return;
+        }
 
-    // synchronize the usno timestamps with any local machine time
-    // synchronization only expected needed on first pass
-    if (i === 0) {
-      const timestampDateSyncRef = new Date(altAzTimeCurveArray[i].time);
-      const dataDelaySeconds = Math.round(
-        (mainClockDate - timestampDateSyncRef) / 1000
-      );
-      console.log(`Fetch data delay: ${dataDelaySeconds}s`);
-      i += dataDelaySeconds;
-    }
-    const timestampDate = new Date(altAzTimeCurveArray[i].time);
-    const liveData = {
-      dataTimeStamp: timestampDate.toTimeString(),
-      altitude: altAzTimeCurveArray[i].alt,
-      azimuth: altAzTimeCurveArray[i].az,
-    };
-    // ### need to change logic depending on chosen interval size and amount left considering average fetch times. This logic assumes 30 seconds of data supplied at 1 second intervals
-    const isDataShort = i > 20 ? true : false;
-    const liveDisplayWorkerResult = {
-      isDataShort,
-      liveData,
-    };
-    postMessage(JSON.stringify(liveDisplayWorkerResult));
-    i++;
-  }, 1000);
+        // synchronize the usno timestamps with any local machine time
+        // synchronization only expected needed on first pass
+        if (i === 0) {
+          const mainClockDate = new Date();
+          const timestampDateSyncRef = new Date(altAzTimeCurveArray[i].time);
+          const dataDelaySeconds = Math.round(
+            (mainClockDate - timestampDateSyncRef) / 1000
+          );
+          console.log(`Fetch data delay: ${dataDelaySeconds}s`);
+          i += dataDelaySeconds;
+        }
+        const timestampDate = new Date(altAzTimeCurveArray[i].time);
+        const liveData = {
+          dataTimeStamp: timestampDate.toTimeString(),
+          altitude: altAzTimeCurveArray[i].alt,
+          azimuth: altAzTimeCurveArray[i].az,
+        };
+        // ### need to change logic depending on chosen interval size and amount left considering average fetch times. This logic assumes 30 seconds of data supplied at 1 second intervals
+        // ###this is being sent and ignored in some cases, trim the fat!
+        if (i > 20) {
+          const messageToMainWorker = {
+            directive: "fetchMoreData",
+            body: null,
+          };
+          postMessage(JSON.stringify(messageToMainWorker));
+        }
+
+        const messageToMainWorker = {
+          directive: "displayLiveData",
+          body: liveData,
+        };
+        postMessage(JSON.stringify(messageToMainWorker));
+        i++;
+      }, 1000);
+
+      break;
+  }
 };
-
-//### need to synchronize with system time and clock
-// function displayLiveCoordinates(altAzTimeCurveArray) {
-//   const dataLength = altAzTimeCurveArray.length;
-//   let i = 0;
-//   const intervalId = setInterval(() => {
-//     if (i === dataLength) {
-//       clearInterval(intervalId);
-//       return;
-//     }
-//     const mainClockDate = new Date();
-
-//     // synchronize the usno timestamps with any local machine time
-//     // synchronization only expected needed on first pass
-//     if (i === 0) {
-//       const timestampDateSyncRef = new Date(altAzTimeCurveArray[i].time);
-//       const dataDelaySeconds = Math.round(
-//         (mainClockDate - timestampDateSyncRef) / 1000
-//       );
-//       console.log(`Fetch data delay: ${dataDelaySeconds}s`);
-//       i += dataDelaySeconds;
-//     }
-//     const timestampDate = new Date(altAzTimeCurveArray[i].time);
-//     const liveData = {
-//       dataTimeStamp: timestampDate.toTimeString(),
-//       altitude: altAzTimeCurveArray[i].alt,
-//       azimuth: altAzTimeCurveArray[i].az,
-//     };
-//     // ### need to change logic depending on chosen interval size and amount left considering average fetch times. This logic assumes 30 seconds of data supplied at 1 second intervals
-//     const isDataShort = i > 20 ? true : false;
-//     const liveDisplayWorkerResult = {
-//       isDataShort,
-//       liveData,
-//     };
-//     postMessage(JSON.stringify(liveData));
-//     i++;
-//   }, 1000);
-// }
 
 function getAzimuthCardinalDirections(azimuthDegrees) {
   if (

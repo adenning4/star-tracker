@@ -1,26 +1,35 @@
 onmessage = (e) => {
-  const { coordinates, trackingObject } = JSON.parse(e.data);
-  const preparedResponse = {};
+  const messageFromMainWorker = JSON.parse(e.data);
+  switch (messageFromMainWorker.directive) {
+    case "serverlessFetch":
+      console.log("serverlessFetch");
+      const { coordinates, trackingObject } = messageFromMainWorker.body;
 
-  // Add fetching logic depending on number of fetches this month
-  // ie. to fetch or not to fetch?
+      fetch(getServerlessRequestUrl(coordinates, trackingObject))
+        .then((res) => res.json())
+        .then((data) => {
+          const messageToMainWorker = {
+            directive: "useUpdatedData",
+            body: {
+              trackingObjectName: data.trackingObjectName,
+              altAzTimeCurve: data.altAzTimeCurve,
+            },
+          };
+          this.postMessage(JSON.stringify(messageToMainWorker));
+        })
+        .catch((err) => {
+          console.log(err);
+          console.log(`Server error reponse in worker: ${err}`);
+        });
 
-  fetch(getRequestUrl(coordinates, trackingObject))
-    .then((res) => {
-      return res.json();
-    })
-    .then((data) => {
-      preparedResponse.trackingObjectName = data.trackingObjectName;
-      preparedResponse.altAzTimeCurve = data.altAzTimeCurve;
-      this.postMessage(JSON.stringify(preparedResponse));
-    })
-    .catch((err) => {
-      console.log(err);
-      console.log(`Server error reponse in worker: ${err}`);
-    });
+      break;
+    case "proxyFetch":
+      console.log("proxyFetch");
+      break;
+  }
 };
 
-function getRequestUrl(coordinates, trackingObject) {
+function getServerlessRequestUrl(coordinates, trackingObject) {
   const serverAddress = "/.netlify/functions/getAltitudeAzimuthCurve";
   const latitudeRounded = Number(coordinates.latitude).toFixed(2);
   const longitudeRounded = Number(coordinates.longitude).toFixed(2);

@@ -63,15 +63,15 @@ if (window.Worker) {
 
   onValue(numberOfFetchesInDB, (snapshot) => {
     fetchCount = snapshot.val();
-    const fetchCountUpdate = {
+    const messageToMain = {
       directive: "updateFetchCount",
       body: fetchCount,
     };
-    mainWorker.postMessage(JSON.stringify(fetchCountUpdate));
+    mainWorker.postMessage(JSON.stringify(messageToMain));
   });
 
   mainWorkerButtonEl.addEventListener("click", () => {
-    const dataPrompt = {
+    const messageToMain = {
       directive: "startTracking",
       body: {
         coordinates: {
@@ -81,16 +81,16 @@ if (window.Worker) {
         trackingObject: trackingObjectSelectionEl.value,
       },
     };
-    mainWorker.postMessage(JSON.stringify(dataPrompt));
+    mainWorker.postMessage(JSON.stringify(messageToMain));
   });
 
   mainWorker.onmessage = (e) => {
-    const indexMessage = JSON.parse(e.data);
-    switch (indexMessage.directive) {
+    const messageFromIndex = JSON.parse(e.data);
+    switch (messageFromIndex.directive) {
       case "displayLiveData":
-        dataTimestampEl.textContent = indexMessage.body.dataTimeStamp;
-        altitudeResultEl.textContent = indexMessage.body.altitude;
-        azimuthResultEl.textContent = indexMessage.body.azimuth;
+        dataTimestampEl.textContent = messageFromIndex.body.dataTimeStamp;
+        altitudeResultEl.textContent = messageFromIndex.body.altitude;
+        azimuthResultEl.textContent = messageFromIndex.body.azimuth;
         break;
       case "addFetchCount":
         set(numberOfFetchesInDB, fetchCount + 1);
