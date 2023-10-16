@@ -19,18 +19,23 @@
         <h2 id="clock"></h2>
       </div>
       <div class="latLonInputContainer">
+        <label for="latitudeInput">Latitude</label>
         <input
           class="coordinateInput"
+          name="latitudeInput"
           type="number"
           id="latitudeInput"
           placeholder="Latitude"
         />
+        <label for="longitudeInput">Longitude</label>
         <input
           class="coordinateInput"
+          name="longitudeInput"
           type="number"
           id="longitudeInput"
           placeholder="Longitude"
         />
+        <button id="getLocationButton">Get My Location</button>
       </div>
       <div class="selectionContainer">
         <select name="trackingObject" id="trackingObjectSelection">
@@ -46,8 +51,14 @@
           <option value="9">Pluto</option>
         </select>
       </div>
-      <button id="mainWorkerButton" class="requestButton">
-        Main worker call
+      <button id="startTrackingButton" class="trackingButton">
+        Start Tracking
+      </button>
+      <button
+        id="stopTrackingButton"
+        class="trackingButton inactive stopTrackingButton"
+      >
+        Stop Tracking
       </button>
       <div class="resultsContainer">
         <h2 class="result trackingObjectName">
@@ -63,10 +74,6 @@
         <h2 class="result coordinateResult">
           Cardinal: <span id="cardinalResult">-</span>
         </h2>
-        <!-- <div class="serverStatusContainer">
-          <h2>Server Status:</h2>
-          <h3 class="serverStatusResponse" id="fetchStatus">---No Call---</h3>
-        </div> -->
       </div>
     </div>
     <script src="./index.js" type="module"></script>

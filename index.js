@@ -25,38 +25,27 @@ const trackingObjectSelectionEl = document.getElementById(
 );
 const clockEl = document.getElementById("clock");
 const dataTimestampEl = document.getElementById("dataTimestamp");
-const mainWorkerButtonEl = document.getElementById("mainWorkerButton");
-
+const startTrackingButtonEl = document.getElementById("startTrackingButton");
+const stopTrackingButtonEl = document.getElementById("stopTrackingButton");
+const getMyLocationButtonEl = document.getElementById("getLocationButton");
 let fetchCount = null;
 
-//## addfunction to process AZ value into N, NE, SW, ect... may do on server side
-let mainClockId = null;
+startTrackingButtonEl.disabled = true;
+stopTrackingButtonEl.disabled = true;
 
-function runMainClock() {
-  mainClockId = setInterval(() => {
-    const date = new Date();
-    clockEl.textContent = date.toTimeString();
-  }, 1000);
-}
-
-runMainClock();
+const mainClockId = setInterval(() => {
+  const date = new Date();
+  clockEl.textContent = date.toTimeString();
+}, 1000);
 
 // ### need to build manual input option for declined/unsuccessful requests
 // ### need to create some behavior that keeps the user from requesting data til this is resolved
 //### need to add a button to grab the user's location, rather than auto grabbing it
 // May be able to move this to a worker
-navigator.geolocation.getCurrentPosition(
-  (pos) => {
-    latitudeInputEl.value = pos.coords.latitude;
-    longitudeInputEl.value = pos.coords.longitude;
-  },
-  (err) => {
-    console.warn(`ERROR(${err.code}): ${err.message}`);
-  },
-  {
-    timeout: 5000,
-  }
-);
+
+getMyLocationButtonEl.addEventListener("click", () => {
+  getCoordinates();
+});
 
 // #what if no workers?
 if (window.Worker) {
@@ -71,7 +60,8 @@ if (window.Worker) {
     mainWorker.postMessage(JSON.stringify(messageToMain));
   });
 
-  mainWorkerButtonEl.addEventListener("click", () => {
+  startTrackingButtonEl.addEventListener("click", () => {
+    console.log("start button");
     const messageToMain = {
       directive: "startTracking",
       body: {
@@ -83,6 +73,11 @@ if (window.Worker) {
       },
     };
     mainWorker.postMessage(JSON.stringify(messageToMain));
+    stopTrackingButtonEl.classList.remove("inactive");
+  });
+
+  stopTrackingButtonEl.addEventListener("click", () => {
+    mainWorker.terminate();
   });
 
   mainWorker.onmessage = (e) => {
@@ -99,4 +94,38 @@ if (window.Worker) {
         break;
     }
   };
+}
+
+longitudeInputEl.addEventListener("change", setButtonAppearance);
+latitudeInputEl.addEventListener("change", setButtonAppearance);
+
+function setButtonAppearance() {
+  if (isLocationEntered()) {
+    startTrackingButtonEl.disabled = false;
+    // stopTrackingButtonEl.classList.remove("inactive");
+  } else {
+    // startTrackingButtonEl.disabled = true;
+    startTrackingButtonEl.disabled = true;
+    // stopTrackingButtonEl.classList.add("inactive");
+  }
+}
+
+function getCoordinates() {
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      latitudeInputEl.value = pos.coords.latitude;
+      longitudeInputEl.value = pos.coords.longitude;
+      setButtonAppearance();
+    },
+    (err) => {
+      console.warn(`ERROR(${err.code}): ${err.message}`);
+    },
+    {
+      timeout: 5000,
+    }
+  );
+}
+
+function isLocationEntered() {
+  return !!latitudeInputEl.value && !!longitudeInputEl.value;
 }

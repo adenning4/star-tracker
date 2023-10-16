@@ -22,17 +22,6 @@ body {
   padding: 0 1em;
 }
 
-/* .serverStatusContainer {
-  align-self: flex-start;
-  display: flex;
-  align-items: center;
-  gap: 1em;
-  font-size: 0.5em;
-} */
-
-/* .serverStatusResponse {
-  margin: 0;
-} */
 .title {
   margin: 0;
 }
@@ -65,9 +54,10 @@ body {
   font-size: 1em;
   font-weight: 500;
   width: 100%;
+  cursor: pointer;
 }
 
-.requestButton {
+button {
   padding: 0.75em 2em;
   font-family: "Inter", sans-serif;
   text-align: center;
@@ -79,9 +69,23 @@ body {
   border-radius: 6px;
   color: whitesmoke;
   text-shadow: 0px 0px 20px black;
-  letter-spacing: 2px;
+  letter-spacing: 1.2px;
+  cursor: pointer;
+}
+
+.trackingButton {
+  background-color: rgb(0, 110, 55);
+}
+
+.stopTrackingButton {
+  background: rgb(128, 0, 0);
 }
 
 .result {
   margin: 1em;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  background: gray;
 }
