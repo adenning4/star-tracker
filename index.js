@@ -29,6 +29,7 @@ const startTrackingButtonEl = document.getElementById("startTrackingButton");
 const stopTrackingButtonEl = document.getElementById("stopTrackingButton");
 const getMyLocationButtonEl = document.getElementById("getLocationButton");
 const azimuthResultArrowEl = document.getElementById("azimuthResultArrow");
+const altitudeResultArrowEl = document.getElementById("altitudeResultArrow");
 
 let fetchCount = null;
 
@@ -101,7 +102,10 @@ startTrackingButtonEl.addEventListener("click", () => {
           altitudeResultEl.textContent = messageFromMainWorker.body.altitude;
           azimuthResultEl.textContent = messageFromMainWorker.body.azimuth;
           cardinalResultEl.textContent = messageFromMainWorker.body.cardinal;
-          applyVisual(messageFromMainWorker.body.azimuth);
+          applyVisual(
+            messageFromMainWorker.body.altitude,
+            messageFromMainWorker.body.azimuth
+          );
           break;
         case "addFetchCount":
           set(numberOfFetchesInDB, fetchCount + 1);
@@ -111,16 +115,14 @@ startTrackingButtonEl.addEventListener("click", () => {
   }
 });
 
-function applyVisual(number) {
-  console.log(number);
-  // azimuthResultEl.dataset.angle = number;
-  // azimuthResultEl.dataset.angle = `rotateZ(${number}deg)`;
+function applyVisual(altitudeAngle, azimuthAngle) {
+  const cssAltitudeAngle = altitudeAngle - 180;
+  const cssAzimuthAngle = azimuthAngle - 90;
+  altitudeResultArrowEl.style.cssText = `
+  transform: rotateZ(${cssAltitudeAngle}deg)
+  `;
   azimuthResultArrowEl.style.cssText = `
-    background-color: red;
-    width: 80px;
-    height: 10px;
-    transform-origin: left;
-    transform: rotateZ(${number}deg)
+    transform: rotateZ(${cssAzimuthAngle}deg)
   `;
 }
 

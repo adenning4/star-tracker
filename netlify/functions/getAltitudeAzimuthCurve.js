@@ -21,7 +21,7 @@ async function getAltitudeAzimuthCurve(parameters) {
   const { latitude, longitude, body } = parameters;
   // const { latitude, longitude, body, date, time } = parameters;
 
-  const reps = "30";
+  const reps = "300";
   const intervalMagnitude = "1";
   const intervalUnit = "seconds";
 

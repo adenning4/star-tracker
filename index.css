@@ -90,22 +90,95 @@ button:disabled {
   background: gray;
 }
 
-/* #azimuthResult::after {
-  content: "";
-  width: 80px;
-  height: 20px;
-  background-color: red;
-  position: absolute;
-  transform: rotateZ(attr(data-angle));
-  transform: rotateZ(20.1234deg);
-  transform-origin: left;
-} */
+.azimuthResultContainer,
+.altitudeIndicatorContainer {
+  background-color: gray;
+  padding: 1em;
+}
 
-#azimuthResultArrow {
-  width: 80px;
-  height: 10px;
+.azimuthCompass,
+.altitudeIndicator {
+  aspect-ratio: 1 / 1;
+  background-color: green;
+  border: 3px solid black;
+  position: relative;
+  border-radius: 50%;
+}
+
+.cardinalDirection,
+.referenceAngle {
+  position: absolute;
+  display: block;
+  color: red;
+  padding: 0;
+  margin: 0;
+  transform-origin: center;
+  font-size: 2rem;
+  line-height: 1em;
+  letter-spacing: 0.1em;
+}
+
+.north {
+  top: 0%;
+  right: calc(50% - 0.5em);
+}
+
+.east {
+  top: calc(50% - 0.5em);
+  right: 0%;
+}
+
+.south {
+  bottom: 0%;
+  right: calc(50% - 0.5em);
+}
+
+.west {
+  top: calc(50% - 0.5em);
+  left: 0%;
+}
+
+.azimuthResultArrow,
+.altitudeResultArrow {
+  width: calc(50% - 2.5em);
+  height: 6px;
   background-color: red;
-  transform: rotateZ(95deg);
   transform-origin: left;
-  /* position: absolute; */
+  position: relative;
+  left: 50%;
+  top: calc(50% - 3px);
+}
+
+.azimuthResultArrow {
+  transform: rotateZ(-90deg);
+}
+
+.altitudeIndicatorContainer {
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.altitudeIndicator {
+  border-radius: 50% 0 0 50%;
+  border-right: none;
+  margin: 0 auto;
+}
+
+.altitudeResultArrow {
+  transform: rotateZ(calc(180deg));
+}
+
+.overhead {
+  top: 0%;
+  right: calc(50% - 0.5em);
+}
+
+.horizon {
+  top: calc(50% - 0.5em);
+  left: 0%;
+}
+
+.underfoot {
+  bottom: 0%;
+  right: calc(50% - 0.5em);
 }

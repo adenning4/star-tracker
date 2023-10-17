@@ -6,7 +6,7 @@ const liveDisplayWorker = new Worker("liveDisplayWorker");
 let fetchDataBody = {};
 let isFetchingMore = false;
 let serverlessFetchCount = null;
-const maxFetchCount = 200;
+const maxFetchCount = 300;
 
 console.log("Creating main worker!");
 
