@@ -8,6 +8,7 @@ onmessage = (e) => {
       fetch(getServerlessRequestUrl(coordinates, trackingObject))
         .then((res) => res.json())
         .then((data) => {
+          console.log(data);
           const messageToMainWorker = {
             directive: "useUpdatedData",
             body: {

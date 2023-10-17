@@ -6,7 +6,9 @@ const liveDisplayWorker = new Worker("liveDisplayWorker");
 let fetchDataBody = {};
 let isFetchingMore = false;
 let serverlessFetchCount = null;
-const maxFetchCount = 100;
+const maxFetchCount = 200;
+
+console.log("Creating main worker!");
 
 // This onmessage will always be from the parent, i.e index.js
 onmessage = (e) => {

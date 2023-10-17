@@ -19,7 +19,7 @@ const longitudeInputEl = document.getElementById("longitudeInput");
 const altitudeResultEl = document.getElementById("altitudeResult");
 const azimuthResultEl = document.getElementById("azimuthResult");
 const cardinalResultEl = document.getElementById("cardinalResult");
-const trackingObjectNameEl = document.getElementById("trackingObjectName");
+const trackingTargetNameEl = document.getElementById("trackingTargetName");
 const trackingObjectSelectionEl = document.getElementById(
   "trackingObjectSelection"
 );
@@ -39,28 +39,33 @@ const mainClockId = setInterval(() => {
 }, 1000);
 
 // ### need to build manual input option for declined/unsuccessful requests
-// ### need to create some behavior that keeps the user from requesting data til this is resolved
-//### need to add a button to grab the user's location, rather than auto grabbing it
-// May be able to move this to a worker
 
 getMyLocationButtonEl.addEventListener("click", () => {
   getCoordinates();
 });
 
+const workerHandler = {
+  mainWorker: null,
+};
+
 // #what if no workers?
-if (window.Worker) {
-  const mainWorker = new Worker("mainWorker.js");
+startTrackingButtonEl.addEventListener("click", () => {
+  if (window.Worker) {
+    if (workerHandler.mainWorker) {
+      workerHandler.mainWorker.terminate();
+    }
+    workerHandler.mainWorker = new Worker("mainWorker.js");
+    indicateLoading();
 
-  onValue(numberOfFetchesInDB, (snapshot) => {
-    fetchCount = snapshot.val();
-    const messageToMain = {
-      directive: "updateFetchCount",
-      body: fetchCount,
-    };
-    mainWorker.postMessage(JSON.stringify(messageToMain));
-  });
+    onValue(numberOfFetchesInDB, (snapshot) => {
+      fetchCount = snapshot.val();
+      const messageToMain = {
+        directive: "updateFetchCount",
+        body: fetchCount,
+      };
+      workerHandler.mainWorker.postMessage(JSON.stringify(messageToMain));
+    });
 
-  startTrackingButtonEl.addEventListener("click", () => {
     console.log("start button");
     const messageToMain = {
       directive: "startTracking",
@@ -72,50 +77,58 @@ if (window.Worker) {
         trackingObject: trackingObjectSelectionEl.value,
       },
     };
-    mainWorker.postMessage(JSON.stringify(messageToMain));
-    stopTrackingButtonEl.classList.remove("inactive");
-  });
+    workerHandler.mainWorker.postMessage(JSON.stringify(messageToMain));
 
-  stopTrackingButtonEl.addEventListener("click", () => {
-    mainWorker.terminate();
-  });
+    stopTrackingButtonEl.addEventListener("click", () => {
+      if (workerHandler.mainWorker) {
+        workerHandler.mainWorker.terminate();
+        workerHandler.mainWorker = null;
+        stopTrackingButtonEl.disabled = true;
+      }
+    });
 
-  mainWorker.onmessage = (e) => {
-    const messageFromIndex = JSON.parse(e.data);
-    switch (messageFromIndex.directive) {
-      case "displayLiveData":
-        dataTimestampEl.textContent = messageFromIndex.body.dataTimeStamp;
-        altitudeResultEl.textContent = messageFromIndex.body.altitude;
-        azimuthResultEl.textContent = messageFromIndex.body.azimuth;
-        cardinalResultEl.textContent = messageFromIndex.body.cardinal;
-        break;
-      case "addFetchCount":
-        set(numberOfFetchesInDB, fetchCount + 1);
-        break;
-    }
-  };
-}
+    workerHandler.mainWorker.onmessage = (e) => {
+      const messageFromMainWorker = JSON.parse(e.data);
+      switch (messageFromMainWorker.directive) {
+        case "displayLiveData":
+          stopTrackingButtonEl.disabled = false;
+          trackingTargetNameEl.textContent =
+            messageFromMainWorker.body.trackingTarget;
+          dataTimestampEl.textContent =
+            messageFromMainWorker.body.dataTimeStamp;
+          altitudeResultEl.textContent = messageFromMainWorker.body.altitude;
+          azimuthResultEl.textContent = messageFromMainWorker.body.azimuth;
+          cardinalResultEl.textContent = messageFromMainWorker.body.cardinal;
+          break;
+        case "addFetchCount":
+          set(numberOfFetchesInDB, fetchCount + 1);
+          break;
+      }
+    };
+  }
+});
 
-longitudeInputEl.addEventListener("change", setButtonAppearance);
-latitudeInputEl.addEventListener("change", setButtonAppearance);
+longitudeInputEl.addEventListener("change", setStartTrackingButton);
+latitudeInputEl.addEventListener("change", setStartTrackingButton);
 
-function setButtonAppearance() {
+function setStartTrackingButton() {
   if (isLocationEntered()) {
     startTrackingButtonEl.disabled = false;
-    // stopTrackingButtonEl.classList.remove("inactive");
   } else {
-    // startTrackingButtonEl.disabled = true;
     startTrackingButtonEl.disabled = true;
-    // stopTrackingButtonEl.classList.add("inactive");
   }
 }
 
 function getCoordinates() {
+  getMyLocationButtonEl.innerHTML = `
+    Getting Location <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+  `;
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       latitudeInputEl.value = pos.coords.latitude;
       longitudeInputEl.value = pos.coords.longitude;
-      setButtonAppearance();
+      setStartTrackingButton();
+      getMyLocationButtonEl.innerHTML = `Get My Location`;
     },
     (err) => {
       console.warn(`ERROR(${err.code}): ${err.message}`);
@@ -128,4 +141,13 @@ function getCoordinates() {
 
 function isLocationEntered() {
   return !!latitudeInputEl.value && !!longitudeInputEl.value;
+}
+
+function indicateLoading() {
+  const loadingSpinner = `<i class="fa-solid fa-spinner fa-spin-pulse"></i>`;
+  trackingTargetNameEl.innerHTML = loadingSpinner;
+  dataTimestampEl.innerHTML = loadingSpinner;
+  altitudeResultEl.innerHTML = loadingSpinner;
+  azimuthResultEl.innerHTML = loadingSpinner;
+  cardinalResultEl.innerHTML = loadingSpinner;
 }

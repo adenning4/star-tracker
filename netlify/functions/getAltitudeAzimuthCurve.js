@@ -6,7 +6,6 @@ const radiansToDegrees = 180 / Math.PI;
 exports.handler = async function (event, context) {
   const parameters = event.queryStringParameters;
   const data = await getAltitudeAzimuthCurve(parameters);
-
   return {
     headers: {
       "content-type": "application/json",
@@ -280,7 +279,7 @@ function getAzimuthCardinalDirection(azimuthDegrees) {
     return "N";
   } else if (azimuthDegrees >= 22.5 && azimuthDegrees < 67.5) {
     return "NE";
-  } else if (azimuthDegrees >= 67.5 && azimuthDegrees < 90) {
+  } else if (azimuthDegrees >= 67.5 && azimuthDegrees < 112.5) {
     return "E";
   } else if (azimuthDegrees >= 112.5 && azimuthDegrees < 157.5) {
     return "SE";
@@ -292,5 +291,7 @@ function getAzimuthCardinalDirection(azimuthDegrees) {
     return "W";
   } else if (azimuthDegrees >= 292.5 && azimuthDegrees < 337.5) {
     return "NW";
+  } else {
+    return "Cardinal Direction Error";
   }
 }

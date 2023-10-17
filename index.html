@@ -10,6 +10,10 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="index.css" />
+    <script
+      src="https://kit.fontawesome.com/af6b4f0cd0.js"
+      crossorigin="anonymous"
+    ></script>
     <title>Document</title>
   </head>
   <body>
@@ -35,8 +39,8 @@
           id="longitudeInput"
           placeholder="Longitude"
         />
-        <button id="getLocationButton">Get My Location</button>
       </div>
+      <button id="getLocationButton">Get My Location</button>
       <div class="selectionContainer">
         <select name="trackingObject" id="trackingObjectSelection">
           <option value="10">Sun</option>
@@ -62,7 +66,7 @@
       </button>
       <div class="resultsContainer">
         <h2 class="result trackingObjectName">
-          Tracked Object: <span id="trackingObjectName">---</span>
+          Tracking Target: <span id="trackingTargetName">---</span>
         </h2>
         <h3>Data Timestamp: <span id="dataTimestamp"> - </span></h3>
         <h2 class="result coordinateResult">

@@ -7,6 +7,7 @@ onmessage = (e) => {
 
       clearInterval(intervalId);
       const altAzTimeCurveArray = messageFromMainWorker.body.altAzTimeCurve;
+      const trackingObjectName = messageFromMainWorker.body.trackingObjectName;
       const dataLength = altAzTimeCurveArray.length;
       let i = 0;
       let isFetchingMore = false;
@@ -29,6 +30,7 @@ onmessage = (e) => {
         }
         const timestampDate = new Date(altAzTimeCurveArray[i].time);
         const liveData = {
+          trackingTarget: trackingObjectName,
           dataTimeStamp: timestampDate.toTimeString(),
           altitude: altAzTimeCurveArray[i].alt,
           azimuth: altAzTimeCurveArray[i].az,
