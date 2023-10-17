@@ -89,3 +89,23 @@ button:disabled {
   cursor: not-allowed;
   background: gray;
 }
+
+/* #azimuthResult::after {
+  content: "";
+  width: 80px;
+  height: 20px;
+  background-color: red;
+  position: absolute;
+  transform: rotateZ(attr(data-angle));
+  transform: rotateZ(20.1234deg);
+  transform-origin: left;
+} */
+
+#azimuthResultArrow {
+  width: 80px;
+  height: 10px;
+  background-color: red;
+  transform: rotateZ(95deg);
+  transform-origin: left;
+  /* position: absolute; */
+}

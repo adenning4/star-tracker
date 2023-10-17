@@ -28,6 +28,8 @@ const dataTimestampEl = document.getElementById("dataTimestamp");
 const startTrackingButtonEl = document.getElementById("startTrackingButton");
 const stopTrackingButtonEl = document.getElementById("stopTrackingButton");
 const getMyLocationButtonEl = document.getElementById("getLocationButton");
+const azimuthResultArrowEl = document.getElementById("azimuthResultArrow");
+
 let fetchCount = null;
 
 startTrackingButtonEl.disabled = true;
@@ -99,6 +101,7 @@ startTrackingButtonEl.addEventListener("click", () => {
           altitudeResultEl.textContent = messageFromMainWorker.body.altitude;
           azimuthResultEl.textContent = messageFromMainWorker.body.azimuth;
           cardinalResultEl.textContent = messageFromMainWorker.body.cardinal;
+          applyVisual(messageFromMainWorker.body.azimuth);
           break;
         case "addFetchCount":
           set(numberOfFetchesInDB, fetchCount + 1);
@@ -107,6 +110,19 @@ startTrackingButtonEl.addEventListener("click", () => {
     };
   }
 });
+
+function applyVisual(number) {
+  console.log(number);
+  // azimuthResultEl.dataset.angle = number;
+  // azimuthResultEl.dataset.angle = `rotateZ(${number}deg)`;
+  azimuthResultArrowEl.style.cssText = `
+    background-color: red;
+    width: 80px;
+    height: 10px;
+    transform-origin: left;
+    transform: rotateZ(${number}deg)
+  `;
+}
 
 longitudeInputEl.addEventListener("change", setStartTrackingButton);
 latitudeInputEl.addEventListener("change", setStartTrackingButton);
