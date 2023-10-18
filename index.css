@@ -19,11 +19,12 @@ body {
   justify-content: space-around;
   max-width: 600px;
   margin: 0 auto;
-  padding: 0 1em;
+  padding: 1em;
+  gap: 0.5em;
 }
 
 .title {
-  margin: 0;
+  margin: 0 0 1em;
 }
 
 .clockContainer {
@@ -35,16 +36,28 @@ body {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 1em;
+  max-width: 100%;
 }
 
+.coordinateInputContainer {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.5em 0;
+  gap: 0.5em;
+  width: 100%;
+}
+
+.coordinateLabel,
 .coordinateInput {
   padding: 0.5em;
   font-family: "Inter", sans-serif;
   text-align: center;
   font-size: 1em;
   font-weight: 500;
-  width: 100%;
+}
+
+.coordinateInput {
+  width: 60%;
 }
 
 #trackingObjectSelection {
@@ -81,8 +94,12 @@ button {
   background: rgb(128, 0, 0);
 }
 
-.result {
-  margin: 1em;
+.coordinateResult {
+  border-bottom: 1px solid;
+}
+
+.degreeResult {
+  margin-bottom: 1em;
 }
 
 button:disabled {
@@ -90,10 +107,21 @@ button:disabled {
   background: gray;
 }
 
+.visualResultContainer {
+  margin: 0.25em;
+}
+
+.altitudeAzimuthResultContainer {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .azimuthResultContainer,
-.altitudeIndicatorContainer {
-  background-color: gray;
-  padding: 1em;
+.altitudeResultContainer {
+  background-color: blue;
+  padding: 0.5em;
+  flex-grow: 1;
+  flex-basis: 130px;
 }
 
 .azimuthCompass,
@@ -113,7 +141,7 @@ button:disabled {
   padding: 0;
   margin: 0;
   transform-origin: center;
-  font-size: 2rem;
+  font-size: 1.2rem;
   line-height: 1em;
   letter-spacing: 0.1em;
 }
@@ -160,8 +188,6 @@ button:disabled {
 
 .altitudeIndicator {
   border-radius: 50% 0 0 50%;
-  border-right: none;
-  margin: 0 auto;
 }
 
 .altitudeResultArrow {
@@ -169,7 +195,7 @@ button:disabled {
 }
 
 .overhead {
-  top: 0%;
+  top: 1%;
   right: calc(50% - 0.5em);
 }
 
@@ -179,6 +205,6 @@ button:disabled {
 }
 
 .underfoot {
-  bottom: 0%;
+  bottom: 1%;
   right: calc(50% - 0.5em);
 }

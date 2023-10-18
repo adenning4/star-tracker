@@ -19,26 +19,30 @@
   <body>
     <div class="container">
       <h1 class="title">Sky Tracker</h1>
-      <div class="clockContainer">
+      <!-- <div class="clockContainer">
         <h2 id="clock"></h2>
-      </div>
+      </div> -->
       <div class="latLonInputContainer">
-        <label for="latitudeInput">Latitude</label>
-        <input
-          class="coordinateInput"
-          name="latitudeInput"
-          type="number"
-          id="latitudeInput"
-          placeholder="Latitude"
-        />
-        <label for="longitudeInput">Longitude</label>
-        <input
-          class="coordinateInput"
-          name="longitudeInput"
-          type="number"
-          id="longitudeInput"
-          placeholder="Longitude"
-        />
+        <div class="coordinateInputContainer">
+          <label for="latitudeInput" class="coordinateLabel">Latitude</label>
+          <input
+            class="coordinateInput"
+            name="latitudeInput"
+            type="number"
+            id="latitudeInput"
+            placeholder="51.48"
+          />
+        </div>
+        <div class="coordinateInputContainer">
+          <label for="longitudeInput" class="coordinateLabel">Longitude</label>
+          <input
+            class="coordinateInput"
+            name="longitudeInput"
+            type="number"
+            id="longitudeInput"
+            placeholder="0.00"
+          />
+        </div>
       </div>
       <button id="getLocationButton">Get My Location</button>
       <div class="selectionContainer">
@@ -69,42 +73,39 @@
           Tracking Target: <span id="trackingTargetName">---</span>
         </h2>
         <h3>Data Timestamp: <span id="dataTimestamp"> - </span></h3>
-        <div class="altitudeResultContainer">
-          <h2 class="result coordinateResult">
-            Altitude: <span id="altitudeResult">-</span>
-          </h2>
-          <div class="altitudeIndicatorContainer">
-            <div class="altitudeIndicator">
+        <div class="altitudeAzimuthResultContainer">
+          <div class="altitudeResultContainer visualResultContainer">
+            <h2 class="result coordinateResult">Altitude</h2>
+            <h2 id="altitudeResult" class="degreeResult">-</h2>
+            <div class="altitudeIndicatorContainer">
+              <div class="altitudeIndicator">
+                <div
+                  id="altitudeResultArrow"
+                  class="altitudeResultArrow altitudeArrowAngle"
+                ></div>
+                <div class="altitudeResultTip"></div>
+                <div class="referenceAngle overhead">+90°</div>
+                <div class="referenceAngle horizon">0°</div>
+                <div class="referenceAngle underfoot">-90°</div>
+              </div>
+            </div>
+          </div>
+          <div class="azimuthResultContainer visualResultContainer">
+            <h2 class="result coordinateResult">Azimuth</h2>
+            <h2 id="azimuthResult" class="degreeResult">-</h2>
+            <div class="azimuthCompass">
               <div
-                id="altitudeResultArrow"
-                class="altitudeResultArrow altitudeArrowAngle"
+                id="azimuthResultArrow"
+                class="azimuthResultArrow azimuthArrowAngle"
               ></div>
-              <div class="altitudeResultTip"></div>
-              <div class="referenceAngle overhead">+90</div>
-              <div class="referenceAngle horizon">0</div>
-              <div class="referenceAngle underfoot">-90</div>
+              <div class="azimuthResultTip"></div>
+              <div class="cardinalDirection north">N</div>
+              <div class="cardinalDirection east">E</div>
+              <div class="cardinalDirection south">S</div>
+              <div class="cardinalDirection west">W</div>
             </div>
           </div>
         </div>
-        <div class="azimuthResultContainer">
-          <h2 class="result coordinateResult">
-            Azimuth: <span id="azimuthResult">-</span>
-          </h2>
-          <div class="azimuthCompass">
-            <div
-              id="azimuthResultArrow"
-              class="azimuthResultArrow azimuthArrowAngle"
-            ></div>
-            <div class="azimuthResultTip"></div>
-            <div class="cardinalDirection north">N</div>
-            <div class="cardinalDirection east">E</div>
-            <div class="cardinalDirection south">S</div>
-            <div class="cardinalDirection west">W</div>
-          </div>
-        </div>
-        <h2 class="result coordinateResult">
-          Cardinal: <span id="cardinalResult">-</span>
-        </h2>
       </div>
     </div>
     <script src="./index.js" type="module"></script>

@@ -18,12 +18,11 @@ const latitudeInputEl = document.getElementById("latitudeInput");
 const longitudeInputEl = document.getElementById("longitudeInput");
 const altitudeResultEl = document.getElementById("altitudeResult");
 const azimuthResultEl = document.getElementById("azimuthResult");
-const cardinalResultEl = document.getElementById("cardinalResult");
 const trackingTargetNameEl = document.getElementById("trackingTargetName");
 const trackingObjectSelectionEl = document.getElementById(
   "trackingObjectSelection"
 );
-const clockEl = document.getElementById("clock");
+// const clockEl = document.getElementById("clock");
 const dataTimestampEl = document.getElementById("dataTimestamp");
 const startTrackingButtonEl = document.getElementById("startTrackingButton");
 const stopTrackingButtonEl = document.getElementById("stopTrackingButton");
@@ -36,10 +35,10 @@ let fetchCount = null;
 startTrackingButtonEl.disabled = true;
 stopTrackingButtonEl.disabled = true;
 
-const mainClockId = setInterval(() => {
-  const date = new Date();
-  clockEl.textContent = date.toTimeString();
-}, 1000);
+// const mainClockId = setInterval(() => {
+//   const date = new Date();
+//   clockEl.textContent = date.toTimeString();
+// }, 1000);
 
 // ### need to build manual input option for declined/unsuccessful requests
 
@@ -99,9 +98,8 @@ startTrackingButtonEl.addEventListener("click", () => {
             messageFromMainWorker.body.trackingTarget;
           dataTimestampEl.textContent =
             messageFromMainWorker.body.dataTimeStamp;
-          altitudeResultEl.textContent = messageFromMainWorker.body.altitude;
-          azimuthResultEl.textContent = messageFromMainWorker.body.azimuth;
-          cardinalResultEl.textContent = messageFromMainWorker.body.cardinal;
+          altitudeResultEl.textContent = `${messageFromMainWorker.body.altitude}°`;
+          azimuthResultEl.textContent = `${messageFromMainWorker.body.azimuth} (${messageFromMainWorker.body.cardinal})°`;
           applyVisual(
             messageFromMainWorker.body.altitude,
             messageFromMainWorker.body.azimuth
@@ -167,5 +165,4 @@ function indicateLoading() {
   dataTimestampEl.innerHTML = loadingSpinner;
   altitudeResultEl.innerHTML = loadingSpinner;
   azimuthResultEl.innerHTML = loadingSpinner;
-  cardinalResultEl.innerHTML = loadingSpinner;
 }
