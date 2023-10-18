@@ -2,13 +2,11 @@ onmessage = (e) => {
   const messageFromMainWorker = JSON.parse(e.data);
   switch (messageFromMainWorker.directive) {
     case "serverlessFetch":
-      console.log("serverlessFetch");
       const { coordinates, trackingObject } = messageFromMainWorker.body;
 
       fetch(getServerlessRequestUrl(coordinates, trackingObject))
         .then((res) => res.json())
         .then((data) => {
-          console.log(data);
           const messageToMainWorker = {
             directive: "useUpdatedData",
             body: {
@@ -21,11 +19,13 @@ onmessage = (e) => {
         .catch((err) => {
           console.log(err);
           console.log(`Server error reponse in worker: ${err}`);
+          indicateFetchWorkerError();
         });
 
       break;
     case "proxyFetch":
       console.log("proxyFetch");
+      indicateFetchWorkerError();
       break;
   }
 };
@@ -54,4 +54,13 @@ function getDateAndTime() {
   const fullDate = newDate.toJSON().split("T");
 
   return { date: fullDate[0], time: fullDate[1].split(".")[0] };
+}
+
+function indicateFetchWorkerError() {
+  const messageToMainWorker = {
+    directive: "notifyFetchError",
+    body: null,
+  };
+  this.postMessage(JSON.stringify(messageToMainWorker));
+  throw "fetchWorker error";
 }

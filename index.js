@@ -4,6 +4,7 @@ import {
   ref,
   set,
   onValue,
+  get,
 } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
 const appSettings = {
@@ -50,9 +51,14 @@ const workerHandler = {
   mainWorker: null,
 };
 
+get(numberOfFetchesInDB).then((snapshot) => {
+  fetchCount = snapshot.val();
+  console.log("initial fetch count complete");
+});
+
 // #what if no workers?
 startTrackingButtonEl.addEventListener("click", () => {
-  if (window.Worker) {
+  if (window.Worker && fetchCount) {
     if (workerHandler.mainWorker) {
       workerHandler.mainWorker.terminate();
     }
@@ -65,10 +71,11 @@ startTrackingButtonEl.addEventListener("click", () => {
         directive: "updateFetchCount",
         body: fetchCount,
       };
+      console.log(`updating main with fetch count: ${fetchCount}`);
       workerHandler.mainWorker.postMessage(JSON.stringify(messageToMain));
     });
 
-    console.log("start button");
+    // console.log("start button");
     const messageToMain = {
       directive: "startTracking",
       body: {
@@ -77,6 +84,7 @@ startTrackingButtonEl.addEventListener("click", () => {
           longitude: longitudeInputEl.value,
         },
         trackingObject: trackingObjectSelectionEl.value,
+        fetchCount,
       },
     };
     workerHandler.mainWorker.postMessage(JSON.stringify(messageToMain));
@@ -110,6 +118,15 @@ startTrackingButtonEl.addEventListener("click", () => {
           break;
       }
     };
+
+    workerHandler.mainWorker.onerror = (e) => {
+      alert("Error: Check console for details");
+      console.log(e.data);
+      indicateError();
+    };
+  } else {
+    indicateError();
+    throw "Error: try again";
   }
 });
 
@@ -144,10 +161,16 @@ function getCoordinates() {
       latitudeInputEl.value = pos.coords.latitude;
       longitudeInputEl.value = pos.coords.longitude;
       setStartTrackingButton();
-      getMyLocationButtonEl.innerHTML = `Get My Location`;
+      getMyLocationButtonEl.textContent = `Get My Location`;
     },
     (err) => {
       console.warn(`ERROR(${err.code}): ${err.message}`);
+      getMyLocationButtonEl.textContent = `Denied - Input Location Manually`;
+      getMyLocationButtonEl.style.cssText = `
+        background: var(--darkYellowColor);
+        color: var(--lightYellowColor);
+        border: 2px solid var(--lightYellowColor);
+      `;
     },
     {
       timeout: 5000,
@@ -161,8 +184,12 @@ function isLocationEntered() {
 
 function indicateLoading() {
   const loadingSpinner = `<i class="fa-solid fa-spinner fa-spin-pulse"></i>`;
-  // trackingTargetNameEl.innerHTML = loadingSpinner;
   dataTimestampEl.innerHTML = loadingSpinner;
-  // altitudeResultEl.innerHTML = loadingSpinner;
-  // azimuthResultEl.innerHTML = loadingSpinner;
+  trackingTargetNameEl.textContent = "-";
+  altitudeResultEl.textContent = "-";
+  azimuthResultEl.textContent = "-";
+}
+
+function indicateError() {
+  dataTimestampEl.textContent = "ERROR!";
 }

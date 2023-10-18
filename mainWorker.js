@@ -6,15 +6,14 @@ const liveDisplayWorker = new Worker("liveDisplayWorker");
 let fetchDataBody = {};
 let isFetchingMore = false;
 let serverlessFetchCount = null;
-const maxFetchCount = 300;
-
-console.log("Creating main worker!");
+const maxFetchCount = 100000;
 
 // This onmessage will always be from the parent, i.e index.js
 onmessage = (e) => {
   const messageFromIndex = JSON.parse(e.data);
   switch (messageFromIndex.directive) {
     case "startTracking":
+      serverlessFetchCount = messageFromIndex.body.fetchCount;
       if (serverlessFetchCount < maxFetchCount) {
         fetchDataBody = messageFromIndex.body;
         const messageToFetchWorker = {
@@ -58,6 +57,10 @@ fetchWorker.onmessage = (e) => {
       liveDisplayWorker.postMessage(JSON.stringify(messageToLiveDisplayWorker));
 
       break;
+
+    case "notifyFetchError":
+      throw "fetchWorker Error";
+      break;
   }
 };
 
@@ -66,8 +69,6 @@ liveDisplayWorker.onmessage = (e) => {
 
   switch (messageFromLiveDisplayWorker.directive) {
     case "displayLiveData":
-      console.log("displayLiveData");
-
       const messageToIndex = {
         directive: "displayLiveData",
         body: messageFromLiveDisplayWorker.body,
@@ -78,8 +79,6 @@ liveDisplayWorker.onmessage = (e) => {
 
     case "fetchMoreData":
       if (!isFetchingMore) {
-        console.log("fetchMoreData");
-
         isFetchingMore = true;
         if (serverlessFetchCount < maxFetchCount) {
           const messageToFetchWorker = {
@@ -89,9 +88,21 @@ liveDisplayWorker.onmessage = (e) => {
           fetchWorker.postMessage(JSON.stringify(messageToFetchWorker));
         } else {
           console.log(`fetch count too high: ${serverlessFetchCount}`);
+          throw "fetch count too high!";
         }
       }
 
       break;
   }
+};
+
+fetchWorker.onerror = (e) => {
+  console.log("fetchWorker error:");
+  console.log(e.data);
+  throw "fetchWorker Error";
+};
+liveDisplayWorker.onerror = (e) => {
+  console.log("liveDisplayWorker error:");
+  console.log(e.data);
+  throw "liveDisplayWorker Error";
 };

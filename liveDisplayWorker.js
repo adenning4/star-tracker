@@ -3,8 +3,6 @@ onmessage = (e) => {
   const messageFromMainWorker = JSON.parse(e.data);
   switch (messageFromMainWorker.directive) {
     case "synchronizeDataArray":
-      console.log("synchronizeDataArray");
-
       clearInterval(intervalId);
       const altAzTimeCurveArray = messageFromMainWorker.body.altAzTimeCurve;
       const trackingObjectName = messageFromMainWorker.body.trackingObjectName;

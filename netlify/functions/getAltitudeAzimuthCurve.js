@@ -1,25 +1,24 @@
 const degreesToRadians = Math.PI / 180;
 const radiansToDegrees = 180 / Math.PI;
 
-// ### Need more sophisticated server handling
-// ### Client hangs while server performs api calls and data preparation
 exports.handler = async function (event, context) {
-  const parameters = event.queryStringParameters;
-  const data = await getAltitudeAzimuthCurve(parameters);
-  return {
-    headers: {
-      "content-type": "application/json",
-    },
-    statusCode: 200,
-    body: JSON.stringify(data),
-  };
+  try {
+    const parameters = event.queryStringParameters;
+    const data = await getAltitudeAzimuthCurve(parameters);
+    return {
+      headers: {
+        "content-type": "application/json",
+      },
+      statusCode: 200,
+      body: JSON.stringify(data),
+    };
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-// ###call the usno api and return a list of 60 alt/az values with timestamps,
-// ###separate by 1 minute for now, so 1 hours worth for a selected object
 async function getAltitudeAzimuthCurve(parameters) {
   const { latitude, longitude, body } = parameters;
-  // const { latitude, longitude, body, date, time } = parameters;
   // 5 MINUTES, 1 SECOND INTERVAL
   const reps = "300";
   const intervalMagnitude = "1";
