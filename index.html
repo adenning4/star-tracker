@@ -19,9 +19,71 @@
   <body>
     <div class="container">
       <h1 class="title">Sky Tracker</h1>
-      <!-- <div class="clockContainer">
-        <h2 id="clock"></h2>
-      </div> -->
+      <div class="resultsContainer">
+        <h3 class="result trackingObjectName">
+          Target: <span id="trackingTargetName">---</span>
+        </h3>
+        <h3><span id="dataTimestamp"> - </span></h3>
+        <div class="altitudeAzimuthResultContainer">
+          <div class="altitudeResultContainer visualResultContainer">
+            <h3 class="result coordinateResult">Altitude</h3>
+            <h3 id="altitudeResult" class="degreeResult">-</h3>
+            <div class="altitudeIndicatorContainer">
+              <div class="altitudeIndicator">
+                <div
+                  id="altitudeResultArrow"
+                  class="altitudeResultArrow altitudeArrowAngle"
+                ></div>
+                <div class="altitudeResultTip"></div>
+                <div class="referenceAngle overhead">+90°</div>
+                <div class="referenceAngle horizon">0°</div>
+                <div class="referenceAngle underfoot">-90°</div>
+              </div>
+            </div>
+          </div>
+          <div class="azimuthResultContainer visualResultContainer">
+            <h3 class="result coordinateResult">Azimuth</h3>
+            <h3 id="azimuthResult" class="degreeResult">-</h3>
+            <div class="azimuthCompass">
+              <div
+                id="azimuthResultArrow"
+                class="azimuthResultArrow azimuthArrowAngle"
+              ></div>
+              <div class="azimuthResultTip"></div>
+              <div class="cardinalDirection north">N</div>
+              <div class="cardinalDirection east">E</div>
+              <div class="cardinalDirection south">S</div>
+              <div class="cardinalDirection west">W</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="trackingButtonsContainer">
+        <button id="startTrackingButton" class="trackingButton">
+          Start Tracking
+        </button>
+        <button
+          id="stopTrackingButton"
+          class="trackingButton inactive stopTrackingButton"
+        >
+          Stop Tracking
+        </button>
+      </div>
+      <div class="selectionContainer">
+        <select name="trackingObject" id="trackingObjectSelection">
+          <option value="10">Sun</option>
+          <option value="11">Moon</option>
+          <option value="1">Mercury</option>
+          <option value="2">Venus</option>
+          <option value="4">Mars</option>
+          <option value="5">Jupiter</option>
+          <option value="6">Saturn</option>
+          <option value="7">Uranus</option>
+          <option value="8">Neptune</option>
+          <option value="9">Pluto</option>
+        </select>
+      </div>
       <div class="latLonInputContainer">
         <div class="coordinateInputContainer">
           <label for="latitudeInput" class="coordinateLabel">Latitude</label>
@@ -45,68 +107,6 @@
         </div>
       </div>
       <button id="getLocationButton">Get My Location</button>
-      <div class="selectionContainer">
-        <select name="trackingObject" id="trackingObjectSelection">
-          <option value="10">Sun</option>
-          <option value="11">Moon</option>
-          <option value="1">Mercury</option>
-          <option value="2">Venus</option>
-          <option value="4">Mars</option>
-          <option value="5">Jupiter</option>
-          <option value="6">Saturn</option>
-          <option value="7">Uranus</option>
-          <option value="8">Neptune</option>
-          <option value="9">Pluto</option>
-        </select>
-      </div>
-      <button id="startTrackingButton" class="trackingButton">
-        Start Tracking
-      </button>
-      <button
-        id="stopTrackingButton"
-        class="trackingButton inactive stopTrackingButton"
-      >
-        Stop Tracking
-      </button>
-      <div class="resultsContainer">
-        <h2 class="result trackingObjectName">
-          Tracking Target: <span id="trackingTargetName">---</span>
-        </h2>
-        <h3>Data Timestamp: <span id="dataTimestamp"> - </span></h3>
-        <div class="altitudeAzimuthResultContainer">
-          <div class="altitudeResultContainer visualResultContainer">
-            <h2 class="result coordinateResult">Altitude</h2>
-            <h2 id="altitudeResult" class="degreeResult">-</h2>
-            <div class="altitudeIndicatorContainer">
-              <div class="altitudeIndicator">
-                <div
-                  id="altitudeResultArrow"
-                  class="altitudeResultArrow altitudeArrowAngle"
-                ></div>
-                <div class="altitudeResultTip"></div>
-                <div class="referenceAngle overhead">+90°</div>
-                <div class="referenceAngle horizon">0°</div>
-                <div class="referenceAngle underfoot">-90°</div>
-              </div>
-            </div>
-          </div>
-          <div class="azimuthResultContainer visualResultContainer">
-            <h2 class="result coordinateResult">Azimuth</h2>
-            <h2 id="azimuthResult" class="degreeResult">-</h2>
-            <div class="azimuthCompass">
-              <div
-                id="azimuthResultArrow"
-                class="azimuthResultArrow azimuthArrowAngle"
-              ></div>
-              <div class="azimuthResultTip"></div>
-              <div class="cardinalDirection north">N</div>
-              <div class="cardinalDirection east">E</div>
-              <div class="cardinalDirection south">S</div>
-              <div class="cardinalDirection west">W</div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
     <script src="./index.js" type="module"></script>
   </body>

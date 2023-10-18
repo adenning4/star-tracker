@@ -99,7 +99,7 @@ startTrackingButtonEl.addEventListener("click", () => {
           dataTimestampEl.textContent =
             messageFromMainWorker.body.dataTimeStamp;
           altitudeResultEl.textContent = `${messageFromMainWorker.body.altitude}°`;
-          azimuthResultEl.textContent = `${messageFromMainWorker.body.azimuth} (${messageFromMainWorker.body.cardinal})°`;
+          azimuthResultEl.textContent = `${messageFromMainWorker.body.azimuth}° (${messageFromMainWorker.body.cardinal})`;
           applyVisual(
             messageFromMainWorker.body.altitude,
             messageFromMainWorker.body.azimuth
@@ -161,8 +161,8 @@ function isLocationEntered() {
 
 function indicateLoading() {
   const loadingSpinner = `<i class="fa-solid fa-spinner fa-spin-pulse"></i>`;
-  trackingTargetNameEl.innerHTML = loadingSpinner;
+  // trackingTargetNameEl.innerHTML = loadingSpinner;
   dataTimestampEl.innerHTML = loadingSpinner;
-  altitudeResultEl.innerHTML = loadingSpinner;
-  azimuthResultEl.innerHTML = loadingSpinner;
+  // altitudeResultEl.innerHTML = loadingSpinner;
+  // azimuthResultEl.innerHTML = loadingSpinner;
 }

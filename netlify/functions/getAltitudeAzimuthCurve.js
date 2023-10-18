@@ -20,7 +20,7 @@ exports.handler = async function (event, context) {
 async function getAltitudeAzimuthCurve(parameters) {
   const { latitude, longitude, body } = parameters;
   // const { latitude, longitude, body, date, time } = parameters;
-
+  // 5 MINUTES, 1 SECOND INTERVAL
   const reps = "300";
   const intervalMagnitude = "1";
   const intervalUnit = "seconds";

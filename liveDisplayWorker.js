@@ -9,6 +9,8 @@ onmessage = (e) => {
       const altAzTimeCurveArray = messageFromMainWorker.body.altAzTimeCurve;
       const trackingObjectName = messageFromMainWorker.body.trackingObjectName;
       const dataLength = altAzTimeCurveArray.length;
+      // 15 second buffer
+      const dataLengthBuffer = dataLength - 15;
       let i = 0;
       let isFetchingMore = false;
       intervalId = setInterval(() => {
@@ -31,13 +33,13 @@ onmessage = (e) => {
         const timestampDate = new Date(altAzTimeCurveArray[i].time);
         const liveData = {
           trackingTarget: trackingObjectName,
-          dataTimeStamp: timestampDate.toTimeString(),
+          dataTimeStamp: timestampDate.toLocaleTimeString(),
           altitude: altAzTimeCurveArray[i].alt,
           azimuth: altAzTimeCurveArray[i].az,
           cardinal: altAzTimeCurveArray[i].cardinal,
         };
         // ### need to change logic depending on chosen interval size and amount left considering average fetch times (2-4 seconds). This logic assumes 30 seconds of data supplied at 1 second intervals
-        if (!isFetchingMore && i > 20) {
+        if (!isFetchingMore && i > dataLengthBuffer) {
           isFetchingMore = true;
           const messageToMainWorker = {
             directive: "fetchMoreData",

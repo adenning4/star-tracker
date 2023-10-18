@@ -1,12 +1,22 @@
+:root {
+  --bodyColorDark: #0a0a0a;
+  --bodyColorLight: white;
+  --lightGreenColor: #00c845;
+  --darkGreenColor: #001b00;
+  --lightRedColor: #ff5001;
+  --darkRedColor: #3d1300;
+}
+
 *,
 *::before,
 *::after {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  background-color: #333;
+  background-color: var(--bodyColorDark);
   color: whitesmoke;
   font-family: "Inter", sans-serif;
   text-align: center;
@@ -17,19 +27,16 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  max-width: 600px;
+  max-width: 558px;
   margin: 0 auto;
   padding: 1em;
   gap: 0.5em;
 }
 
-.title {
-  margin: 0 0 1em;
-}
-
-.clockContainer {
-  text-align: center;
-  margin: 0;
+.resultsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
 }
 
 .latLonInputContainer {
@@ -68,34 +75,47 @@ body {
   font-weight: 500;
   width: 100%;
   cursor: pointer;
+  background: whitesmoke;
+  /* color: var(--lightGreenColor);
+  border: 2px solid var(--lightGreenColor); */
 }
 
 button {
-  padding: 0.75em 2em;
+  padding: 0.75em 1em;
   font-family: "Inter", sans-serif;
   text-align: center;
-  font-size: 1em;
+  font-size: 0.875em;
   font-weight: 500;
   font-weight: 500;
-  background-color: rgb(0, 110, 55);
-  border: none;
+  background-color: var(--darkGreenColor);
+  border: 2px solid var(--lightGreenColor);
   border-radius: 6px;
-  color: whitesmoke;
+  color: var(--lightGreenColor);
   text-shadow: 0px 0px 20px black;
   letter-spacing: 1.2px;
   cursor: pointer;
 }
 
+.trackingButtonsContainer {
+  /* background-color: var(--darkGreenColor); */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
 .trackingButton {
-  background-color: rgb(0, 110, 55);
+  flex-grow: 1;
 }
 
 .stopTrackingButton {
-  background: rgb(128, 0, 0);
+  background: var(--darkRedColor);
+  color: var(--lightRedColor);
+  border: 2px solid var(--lightRedColor);
 }
 
 .coordinateResult {
   border-bottom: 1px solid;
+  margin-bottom: 0.25em;
 }
 
 .degreeResult {
@@ -105,10 +125,13 @@ button {
 button:disabled {
   cursor: not-allowed;
   background: gray;
+  color: whitesmoke;
+  border: 2px solid #333;
 }
 
 .visualResultContainer {
   margin: 0.25em;
+  font-size: 0.9em;
 }
 
 .altitudeAzimuthResultContainer {
@@ -118,7 +141,7 @@ button:disabled {
 
 .azimuthResultContainer,
 .altitudeResultContainer {
-  background-color: blue;
+  /* background-color: blue; */
   padding: 0.5em;
   flex-grow: 1;
   flex-basis: 130px;
@@ -127,8 +150,8 @@ button:disabled {
 .azimuthCompass,
 .altitudeIndicator {
   aspect-ratio: 1 / 1;
-  background-color: green;
-  border: 3px solid black;
+  background-color: var(--darkGreenColor);
+  border: 2px solid var(--lightGreenColor);
   position: relative;
   border-radius: 50%;
 }
@@ -137,7 +160,7 @@ button:disabled {
 .referenceAngle {
   position: absolute;
   display: block;
-  color: red;
+  color: var(--lightGreenColor);
   padding: 0;
   margin: 0;
   transform-origin: center;
@@ -147,34 +170,35 @@ button:disabled {
 }
 
 .north {
-  top: 0%;
+  top: 1%;
   right: calc(50% - 0.5em);
 }
 
 .east {
   top: calc(50% - 0.5em);
-  right: 0%;
+  right: 1%;
 }
 
 .south {
-  bottom: 0%;
+  bottom: 1%;
   right: calc(50% - 0.5em);
 }
 
 .west {
   top: calc(50% - 0.5em);
-  left: 0%;
+  left: 2%;
 }
 
 .azimuthResultArrow,
 .altitudeResultArrow {
-  width: calc(50% - 2.5em);
-  height: 6px;
-  background-color: red;
+  width: calc(50% - 2em);
+  min-width: 35px;
+  height: 4px;
+  background-color: var(--lightGreenColor);
   transform-origin: left;
   position: relative;
   left: 50%;
-  top: calc(50% - 3px);
+  top: calc(50% - 2px);
 }
 
 .azimuthResultArrow {
@@ -184,27 +208,33 @@ button:disabled {
 .altitudeIndicatorContainer {
   aspect-ratio: 1 / 1;
   overflow: hidden;
+  transform: translateX(-20%);
 }
 
 .altitudeIndicator {
   border-radius: 50% 0 0 50%;
+  transform: translateX(30%);
 }
 
 .altitudeResultArrow {
   transform: rotateZ(calc(180deg));
 }
 
+.referenceAngle {
+  letter-spacing: 0;
+}
+
 .overhead {
-  top: 1%;
-  right: calc(50% - 0.5em);
+  top: 2%;
+  right: calc(40% - 0.5em);
 }
 
 .horizon {
   top: calc(50% - 0.5em);
-  left: 0%;
+  left: 2%;
 }
 
 .underfoot {
-  bottom: 1%;
-  right: calc(50% - 0.5em);
+  bottom: 2%;
+  right: calc(40% - 0.5em);
 }
