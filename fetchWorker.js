@@ -1,4 +1,4 @@
-onmessage = (e) => {
+this.onmessage = (e) => {
   const messageFromMainWorker = JSON.parse(e.data);
   switch (messageFromMainWorker.directive) {
     case "serverlessFetch":
