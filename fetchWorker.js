@@ -14,7 +14,7 @@ onmessage = (e) => {
               altAzTimeCurve: data.altAzTimeCurve,
             },
           };
-          this.postMessage(JSON.stringify(messageToMainWorker));
+          postMessage(JSON.stringify(messageToMainWorker));
         })
         .catch((err) => {
           console.log(err);
