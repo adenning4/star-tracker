@@ -1,7 +1,11 @@
 // purpose of connections array is to send messages to all connections
 
-const fetchWorker = new Worker("./fetchWorker.js");
-const liveDisplayWorker = new Worker("./liveDisplayWorker");
+// const fetchWorker = new Worker("./fetchWorker.js");
+const fetchWorker = new Worker(new URL("./fetchWorker.js", import.meta.url));
+// const liveDisplayWorker = new Worker("./liveDisplayWorker");
+const liveDisplayWorker = new Worker(
+  new URL("./liveDisplayWorker.js", import.meta.url)
+);
 
 let fetchDataBody = {};
 let isFetchingMore = false;

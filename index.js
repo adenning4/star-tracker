@@ -62,7 +62,10 @@ startTrackingButtonEl.addEventListener("click", () => {
     if (workerHandler.mainWorker) {
       workerHandler.mainWorker.terminate();
     }
-    workerHandler.mainWorker = new Worker("./mainWorker.js");
+    // workerHandler.mainWorker = new Worker("./mainWorker.js");
+    workerHandler.mainWorker = new Worker(
+      new URL("./mainWorker.js", import.meta.url)
+    );
     indicateLoading();
 
     onValue(numberOfFetchesInDB, (snapshot) => {
