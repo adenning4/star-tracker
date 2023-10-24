@@ -1,74 +1,198 @@
-const testButtonEl = document.getElementById("testButton");
-// const fetchStatusEl = document.getElementById("fetchStatus");
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+import {
+  getDatabase,
+  ref,
+  set,
+  onValue,
+  get,
+} from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+
+const appSettings = {
+  databaseURL: "https://star-tracker-1bd78-default-rtdb.firebaseio.com/",
+};
+
+const app = initializeApp(appSettings);
+const database = getDatabase(app);
+const numberOfFetchesInDB = ref(database, "numberOfFetches");
+
 const latitudeInputEl = document.getElementById("latitudeInput");
 const longitudeInputEl = document.getElementById("longitudeInput");
 const altitudeResultEl = document.getElementById("altitudeResult");
 const azimuthResultEl = document.getElementById("azimuthResult");
-const trackingObjectNameEl = document.getElementById("trackingObjectName");
+const trackingTargetNameEl = document.getElementById("trackingTargetName");
 const trackingObjectSelectionEl = document.getElementById(
   "trackingObjectSelection"
 );
-const clockEl = document.getElementById("clock");
+// const clockEl = document.getElementById("clock");
+const dataTimestampEl = document.getElementById("dataTimestamp");
+const startTrackingButtonEl = document.getElementById("startTrackingButton");
+const stopTrackingButtonEl = document.getElementById("stopTrackingButton");
+const getMyLocationButtonEl = document.getElementById("getLocationButton");
+const azimuthResultArrowEl = document.getElementById("azimuthResultArrow");
+const altitudeResultArrowEl = document.getElementById("altitudeResultArrow");
 
-//## addfunction to process AZ value into N, NE, SW, ect...
+let fetchCount = null;
 
-setInterval(() => {
-  const date = new Date();
-  clockEl.textContent = date.toTimeString();
-}, 1000);
+startTrackingButtonEl.disabled = true;
+stopTrackingButtonEl.disabled = true;
+
+// const mainClockId = setInterval(() => {
+//   const date = new Date();
+//   clockEl.textContent = date.toTimeString();
+// }, 1000);
 
 // ### need to build manual input option for declined/unsuccessful requests
-// ### need to create some behavior that keeps the user from requesting data til this is resolved
-//### need to add a button to grab the user's location, rather than auto grabbing it
-navigator.geolocation.getCurrentPosition(
-  (pos) => {
-    latitudeInputEl.value = pos.coords.latitude;
-    longitudeInputEl.value = pos.coords.longitude;
-  },
-  (err) => {
-    console.warn(`ERROR(${err.code}): ${err.message}`);
-  },
-  {
-    timeout: 5000,
-  }
-);
 
-testButtonEl.addEventListener("click", () => {
-  getServerData();
+getMyLocationButtonEl.addEventListener("click", () => {
+  getCoordinates();
 });
 
-function getServerData() {
-  const coordinates = {
-    latitude: latitudeInputEl.value,
-    longitude: longitudeInputEl.value,
-  };
-  const trackingObject = trackingObjectSelectionEl.value;
-  fetch(getRequestUrl(coordinates, trackingObject))
-    .then((res) => {
-      // fetchStatusEl.textContent = res.status;
-      return res.json();
-    })
-    .then((data) => {
-      altitudeResultEl.textContent = data.altitude;
-      azimuthResultEl.textContent = data.azimuth;
-      trackingObjectNameEl.textContent = data.trackingObjectName;
-    })
-    .catch((err) => {
-      console.log(err);
-      // fetchStatusEl.textContent = err;
+const workerHandler = {
+  mainWorker: null,
+};
+
+get(numberOfFetchesInDB).then((snapshot) => {
+  fetchCount = snapshot.val();
+  console.log("initial fetch count complete");
+});
+
+// #what if no workers?
+startTrackingButtonEl.addEventListener("click", () => {
+  if (window.Worker && fetchCount) {
+    if (workerHandler.mainWorker) {
+      workerHandler.mainWorker.terminate();
+    }
+    // workerHandler.mainWorker = new Worker("./mainWorker.js");
+    workerHandler.mainWorker = new Worker(
+      new URL("./mainWorker.js", import.meta.url)
+    );
+    indicateLoading();
+
+    onValue(numberOfFetchesInDB, (snapshot) => {
+      fetchCount = snapshot.val();
+      const messageToMain = {
+        directive: "updateFetchCount",
+        body: fetchCount,
+      };
+      console.log(`updating main with fetch count: ${fetchCount}`);
+      workerHandler.mainWorker.postMessage(JSON.stringify(messageToMain));
     });
+
+    // console.log("start button");
+    const messageToMain = {
+      directive: "startTracking",
+      body: {
+        coordinates: {
+          latitude: latitudeInputEl.value,
+          longitude: longitudeInputEl.value,
+        },
+        trackingObject: trackingObjectSelectionEl.value,
+        fetchCount,
+      },
+    };
+    workerHandler.mainWorker.postMessage(JSON.stringify(messageToMain));
+
+    stopTrackingButtonEl.addEventListener("click", () => {
+      if (workerHandler.mainWorker) {
+        workerHandler.mainWorker.terminate();
+        workerHandler.mainWorker = null;
+        stopTrackingButtonEl.disabled = true;
+      }
+    });
+
+    workerHandler.mainWorker.onmessage = (e) => {
+      const messageFromMainWorker = JSON.parse(e.data);
+      switch (messageFromMainWorker.directive) {
+        case "displayLiveData":
+          stopTrackingButtonEl.disabled = false;
+          trackingTargetNameEl.textContent =
+            messageFromMainWorker.body.trackingTarget;
+          dataTimestampEl.textContent =
+            messageFromMainWorker.body.dataTimeStamp;
+          altitudeResultEl.textContent = `${messageFromMainWorker.body.altitude}°`;
+          azimuthResultEl.textContent = `${messageFromMainWorker.body.azimuth}° (${messageFromMainWorker.body.cardinal})`;
+          applyVisual(
+            messageFromMainWorker.body.altitude,
+            messageFromMainWorker.body.azimuth
+          );
+          break;
+        case "addFetchCount":
+          set(numberOfFetchesInDB, fetchCount + 1);
+          break;
+      }
+    };
+
+    workerHandler.mainWorker.onerror = (e) => {
+      alert("Error: Check console for details");
+      console.log(e.data);
+      indicateError();
+    };
+  } else {
+    indicateError();
+    throw "Error: try again";
+  }
+});
+
+function applyVisual(altitudeAngle, azimuthAngle) {
+  const cssAltitudeAngle = altitudeAngle - 180;
+  const cssAzimuthAngle = azimuthAngle - 90;
+  altitudeResultArrowEl.style.cssText = `
+  transform: rotateZ(${cssAltitudeAngle}deg)
+  `;
+  azimuthResultArrowEl.style.cssText = `
+    transform: rotateZ(${cssAzimuthAngle}deg)
+  `;
 }
 
-function getRequestUrl(coordinates, trackingObject) {
-  const serverAddress = "/.netlify/functions/getAltitudeAzimuthCurve";
-  const latitudeRounded = Number(coordinates.latitude).toFixed(2);
-  const longitudeRounded = Number(coordinates.longitude).toFixed(2);
-  const coordinatesParameters = `?latitude=${latitudeRounded}&longitude=${longitudeRounded}`;
+longitudeInputEl.addEventListener("change", setStartTrackingButton);
+latitudeInputEl.addEventListener("change", setStartTrackingButton);
 
-  const trackingObjectParameter = `&body=${trackingObject}`;
+function setStartTrackingButton() {
+  if (isLocationEntered()) {
+    startTrackingButtonEl.disabled = false;
+  } else {
+    startTrackingButtonEl.disabled = true;
+  }
+}
 
-  const requestUrl =
-    serverAddress + coordinatesParameters + trackingObjectParameter;
+function getCoordinates() {
+  getMyLocationButtonEl.innerHTML = `
+    Getting Location <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+  `;
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      latitudeInputEl.value = pos.coords.latitude;
+      longitudeInputEl.value = pos.coords.longitude;
+      setStartTrackingButton();
+      getMyLocationButtonEl.textContent = `Get My Location`;
+    },
+    (err) => {
+      console.warn(`ERROR(${err.code}): ${err.message}`);
+      getMyLocationButtonEl.textContent = `Denied - Input Location Manually`;
+      getMyLocationButtonEl.style.cssText = `
+        background: var(--darkYellowColor);
+        color: var(--lightYellowColor);
+        border: 2px solid var(--lightYellowColor);
+      `;
+    },
+    {
+      timeout: 5000,
+    }
+  );
+}
 
-  return requestUrl;
+function isLocationEntered() {
+  return !!latitudeInputEl.value && !!longitudeInputEl.value;
+}
+
+function indicateLoading() {
+  const loadingSpinner = `<i class="fa-solid fa-spinner fa-spin-pulse"></i>`;
+  dataTimestampEl.innerHTML = loadingSpinner;
+  trackingTargetNameEl.textContent = "-";
+  altitudeResultEl.textContent = "-";
+  azimuthResultEl.textContent = "-";
+}
+
+function indicateError() {
+  dataTimestampEl.textContent = "ERROR!";
 }

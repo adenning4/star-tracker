@@ -1,12 +1,24 @@
+:root {
+  --bodyColorDark: #0a0a0a;
+  --bodyColorLight: white;
+  --lightGreenColor: #00c845;
+  --darkGreenColor: #001b00;
+  --lightRedColor: #ff5001;
+  --darkRedColor: #3d1300;
+  --lightYellowColor: #ffa600;
+  --darkYellowColor: #573800;
+}
+
 *,
 *::before,
 *::after {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  background-color: #333;
+  background-color: var(--bodyColorDark);
   color: whitesmoke;
   font-family: "Inter", sans-serif;
   text-align: center;
@@ -17,45 +29,44 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  max-width: 600px;
+  max-width: 558px;
   margin: 0 auto;
-  padding: 0 1em;
+  padding: 1em;
+  gap: 0.5em;
 }
 
-/* .serverStatusContainer {
-  align-self: flex-start;
+.resultsContainer {
   display: flex;
-  align-items: center;
-  gap: 1em;
-  font-size: 0.5em;
-} */
-
-/* .serverStatusResponse {
-  margin: 0;
-} */
-.title {
-  margin: 0;
-}
-
-.clockContainer {
-  text-align: center;
-  margin: 0;
+  flex-direction: column;
+  gap: 0.5em;
 }
 
 .latLonInputContainer {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 1em;
+  max-width: 100%;
 }
 
+.coordinateInputContainer {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.5em 0;
+  gap: 0.5em;
+  width: 100%;
+}
+
+.coordinateLabel,
 .coordinateInput {
   padding: 0.5em;
   font-family: "Inter", sans-serif;
   text-align: center;
   font-size: 1em;
   font-weight: 500;
-  width: 100%;
+}
+
+.coordinateInput {
+  width: 60%;
 }
 
 #trackingObjectSelection {
@@ -65,23 +76,167 @@ body {
   font-size: 1em;
   font-weight: 500;
   width: 100%;
+  cursor: pointer;
+  background: whitesmoke;
+  /* color: var(--lightGreenColor);
+  border: 2px solid var(--lightGreenColor); */
 }
 
-.requestButton {
-  padding: 0.75em 2em;
+button {
+  padding: 0.75em 1em;
   font-family: "Inter", sans-serif;
   text-align: center;
-  font-size: 1em;
+  font-size: 0.875em;
   font-weight: 500;
   font-weight: 500;
-  background-color: rgb(0, 110, 55);
-  border: none;
+  background-color: var(--darkGreenColor);
+  border: 2px solid var(--lightGreenColor);
   border-radius: 6px;
-  color: whitesmoke;
+  color: var(--lightGreenColor);
   text-shadow: 0px 0px 20px black;
-  letter-spacing: 2px;
+  letter-spacing: 1.2px;
+  cursor: pointer;
 }
 
-.result {
-  margin: 1em;
+.trackingButtonsContainer {
+  /* background-color: var(--darkGreenColor); */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+.trackingButton {
+  flex-grow: 1;
+}
+
+.stopTrackingButton {
+  background: var(--darkRedColor);
+  color: var(--lightRedColor);
+  border: 2px solid var(--lightRedColor);
+}
+
+.coordinateResult {
+  border-bottom: 1px solid;
+  margin-bottom: 0.25em;
+}
+
+.degreeResult {
+  margin-bottom: 1em;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  background: gray;
+  color: whitesmoke;
+  border: 2px solid #333;
+}
+
+.visualResultContainer {
+  margin: 0.25em;
+  font-size: 0.9em;
+}
+
+.altitudeAzimuthResultContainer {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.azimuthResultContainer,
+.altitudeResultContainer {
+  /* background-color: blue; */
+  padding: 0.5em;
+  flex-grow: 1;
+  flex-basis: 130px;
+}
+
+.azimuthCompass,
+.altitudeIndicator {
+  aspect-ratio: 1 / 1;
+  background-color: var(--darkGreenColor);
+  border: 2px solid var(--lightGreenColor);
+  position: relative;
+  border-radius: 50%;
+}
+
+.cardinalDirection,
+.referenceAngle {
+  position: absolute;
+  display: block;
+  color: var(--lightGreenColor);
+  padding: 0;
+  margin: 0;
+  transform-origin: center;
+  font-size: 1.2rem;
+  line-height: 1em;
+  letter-spacing: 0.1em;
+}
+
+.north {
+  top: 1%;
+  right: calc(50% - 0.5em);
+}
+
+.east {
+  top: calc(50% - 0.5em);
+  right: 1%;
+}
+
+.south {
+  bottom: 1%;
+  right: calc(50% - 0.5em);
+}
+
+.west {
+  top: calc(50% - 0.5em);
+  left: 2%;
+}
+
+.azimuthResultArrow,
+.altitudeResultArrow {
+  width: calc(50% - 2em);
+  min-width: 35px;
+  height: 4px;
+  background-color: var(--lightGreenColor);
+  transform-origin: left;
+  position: relative;
+  left: 50%;
+  top: calc(50% - 2px);
+}
+
+.azimuthResultArrow {
+  transform: rotateZ(-90deg);
+}
+
+.altitudeIndicatorContainer {
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  transform: translateX(-20%);
+}
+
+.altitudeIndicator {
+  border-radius: 50% 0 0 50%;
+  transform: translateX(30%);
+}
+
+.altitudeResultArrow {
+  transform: rotateZ(calc(180deg));
+}
+
+.referenceAngle {
+  letter-spacing: 0;
+}
+
+.overhead {
+  top: 2%;
+  right: calc(40% - 0.5em);
+}
+
+.horizon {
+  top: calc(50% - 0.5em);
+  left: 2%;
+}
+
+.underfoot {
+  bottom: 2%;
+  right: calc(40% - 0.5em);
 }

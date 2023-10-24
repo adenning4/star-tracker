@@ -1,6 +1,10 @@
 {
   "name": "project",
-  "dependencies": {},
+  "dependencies": {
+    "cli": "^1.0.1",
+    "netlify": "^13.1.10",
+    "netlify-cli": "^16.7.0"
+  },
   "devDependencies": {
     "vite": "latest"
   },

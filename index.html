@@ -10,27 +10,68 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="index.css" />
+    <script
+      src="https://kit.fontawesome.com/af6b4f0cd0.js"
+      crossorigin="anonymous"
+    ></script>
+    <script src="./mainWorker.js" type="module"></script>
+    <script src="./fetchWorker.js" type="module"></script>
+    <script src="./liveDisplayWorker.js" type="module"></script>
     <title>Document</title>
   </head>
   <body>
     <div class="container">
       <h1 class="title">Sky Tracker</h1>
-      <div class="clockContainer">
-        <h2 id="clock"></h2>
+      <div class="resultsContainer">
+        <h3 class="result trackingObjectName">
+          Target: <span id="trackingTargetName">---</span>
+        </h3>
+        <h3><span id="dataTimestamp"> - </span></h3>
+        <div class="altitudeAzimuthResultContainer">
+          <div class="altitudeResultContainer visualResultContainer">
+            <h3 class="result coordinateResult">Altitude</h3>
+            <h3 id="altitudeResult" class="degreeResult">-</h3>
+            <div class="altitudeIndicatorContainer">
+              <div class="altitudeIndicator">
+                <div
+                  id="altitudeResultArrow"
+                  class="altitudeResultArrow altitudeArrowAngle"
+                ></div>
+                <div class="altitudeResultTip"></div>
+                <div class="referenceAngle overhead">+90°</div>
+                <div class="referenceAngle horizon">0°</div>
+                <div class="referenceAngle underfoot">-90°</div>
+              </div>
+            </div>
+          </div>
+          <div class="azimuthResultContainer visualResultContainer">
+            <h3 class="result coordinateResult">Azimuth</h3>
+            <h3 id="azimuthResult" class="degreeResult">-</h3>
+            <div class="azimuthCompass">
+              <div
+                id="azimuthResultArrow"
+                class="azimuthResultArrow azimuthArrowAngle"
+              ></div>
+              <div class="azimuthResultTip"></div>
+              <div class="cardinalDirection north">N</div>
+              <div class="cardinalDirection east">E</div>
+              <div class="cardinalDirection south">S</div>
+              <div class="cardinalDirection west">W</div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="latLonInputContainer">
-        <input
-          class="coordinateInput"
-          type="number"
-          id="latitudeInput"
-          placeholder="Latitude"
-        />
-        <input
-          class="coordinateInput"
-          type="number"
-          id="longitudeInput"
-          placeholder="Longitude"
-        />
+
+      <div class="trackingButtonsContainer">
+        <button id="startTrackingButton" class="trackingButton">
+          Start Tracking
+        </button>
+        <button
+          id="stopTrackingButton"
+          class="trackingButton inactive stopTrackingButton"
+        >
+          Stop Tracking
+        </button>
       </div>
       <div class="selectionContainer">
         <select name="trackingObject" id="trackingObjectSelection">
@@ -46,22 +87,29 @@
           <option value="9">Pluto</option>
         </select>
       </div>
-      <button id="testButton" class="requestButton">Test Request</button>
-      <div class="resultsContainer">
-        <h2 class="result trackingObjectName">
-          Tracked Object: <span id="trackingObjectName">---</span>
-        </h2>
-        <h2 class="result coordinateResult">
-          Altitude: <span id="altitudeResult">-</span>
-        </h2>
-        <h2 class="result coordinateResult">
-          Azimuth: <span id="azimuthResult">-</span>
-        </h2>
-        <!-- <div class="serverStatusContainer">
-          <h2>Server Status:</h2>
-          <h3 class="serverStatusResponse" id="fetchStatus">---No Call---</h3>
-        </div> -->
+      <div class="latLonInputContainer">
+        <div class="coordinateInputContainer">
+          <label for="latitudeInput" class="coordinateLabel">Latitude</label>
+          <input
+            class="coordinateInput"
+            name="latitudeInput"
+            type="number"
+            id="latitudeInput"
+            placeholder="51.48"
+          />
+        </div>
+        <div class="coordinateInputContainer">
+          <label for="longitudeInput" class="coordinateLabel">Longitude</label>
+          <input
+            class="coordinateInput"
+            name="longitudeInput"
+            type="number"
+            id="longitudeInput"
+            placeholder="0.00"
+          />
+        </div>
       </div>
+      <button id="getLocationButton">Get My Location</button>
     </div>
     <script src="./index.js" type="module"></script>
   </body>

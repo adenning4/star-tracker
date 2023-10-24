@@ -2,36 +2,27 @@ const degreesToRadians = Math.PI / 180;
 const radiansToDegrees = 180 / Math.PI;
 
 exports.handler = async function (event, context) {
-  console.log(event.queryStringParameters);
-  const parameters = event.queryStringParameters;
-  const data = await getAltitudeAzimuthCurve(parameters);
-  console.log(data);
-
-  return {
-    headers: {
-      "content-type": "application/json",
-    },
-    statusCode: 200,
-    body: JSON.stringify(data),
-  };
+  try {
+    const parameters = event.queryStringParameters;
+    const data = await getAltitudeAzimuthCurve(parameters);
+    return {
+      headers: {
+        "content-type": "application/json",
+      },
+      statusCode: 200,
+      body: JSON.stringify(data),
+    };
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-function getClientRequestUrlParameters(requestUrl) {
-  const parameters = requestUrl.split("?")[1].split("&");
-  const latitude = parameters[0].split("=")[1];
-  const longitude = parameters[1].split("=")[1];
-  const body = parameters[2].split("=")[1];
-  return { latitude, longitude, body };
-}
-
-// ###call the usno api and return a list of 60 alt/az values with timestamps,
-// ###separate by 1 minute for now, so 1 hours worth for a selected object
 async function getAltitudeAzimuthCurve(parameters) {
   const { latitude, longitude, body } = parameters;
-
-  const reps = "1";
-  const intervalMagnitude = "5";
-  const intervalUnit = "minutes";
+  // 5 MINUTES, 1 SECOND INTERVAL
+  const reps = "300";
+  const intervalMagnitude = "1";
+  const intervalUnit = "seconds";
 
   const { date, time } = getDateAndTime();
 
@@ -45,27 +36,23 @@ async function getAltitudeAzimuthCurve(parameters) {
     intervalUnit,
     body,
   };
-
   const raDecRes = await fetch(getRaDecUrl(urlParameters));
   const raDecHTML = await raDecRes.text();
-  const { rightAscension, declination, trackingObjectName } =
-    getRaDecObjectValues(raDecHTML);
+  const { raDecTimeCurve, trackingObjectName } = getRaDecObjectValues(
+    raDecHTML,
+    reps
+  );
 
   const siderialRes = await fetch(getSiderialUrl(urlParameters));
   const siderialData = await siderialRes.json();
 
-  const { altitude, azimuth } = extractAltitudeAzimuth(
+  const altAzTimeCurve = extractAltitudeAzimuthTimeArray(
     siderialData,
     latitude,
-    rightAscension,
-    declination
+    raDecTimeCurve
   );
 
-  return {
-    altitude: altitude.toFixed(4),
-    azimuth: azimuth.toFixed(4),
-    trackingObjectName,
-  };
+  return { trackingObjectName, altAzTimeCurve };
 }
 
 function getDateAndTime() {
@@ -87,7 +74,13 @@ function getRaDecUrl(urlParameters) {
     body,
   } = urlParameters;
 
-  const intervalUnitOptions = ["placeholder", "days, hours, minutes, seconds"];
+  const intervalUnitOptions = [
+    "placeholder",
+    "days",
+    "hours",
+    "minutes",
+    "seconds",
+  ];
   const formattedIntervalUnit = intervalUnitOptions.indexOf(intervalUnit);
 
   const [hours, minutes, seconds] = time.split(":");
@@ -97,29 +90,65 @@ function getRaDecUrl(urlParameters) {
 
   return url;
 }
-function getRaDecObjectValues(raDecHTML) {
-  const rightAscensionRaw = {};
-  const declinationRaw = {};
+function getRaDecObjectValues(raDecHTML, reps) {
+  const raDecTimeCurve = [];
   const htmlPre = raDecHTML.match(/<pre [\s\S]+>[\s\S]+<\Spre>/gm);
   const trackingObjectName = htmlPre[0].split(/\n/gm)[1].trim();
 
-  const dataLine = htmlPre[0].split(/\n/gm)[13];
-  const dataLineParts = dataLine.split(/\s{3,}/);
+  for (let i = 0; i < reps; i++) {
+    const rightAscensionRaw = {};
+    const declinationRaw = {};
 
-  rightAscensionRaw.hours = dataLineParts[1].split(" ")[0];
-  rightAscensionRaw.minutes = dataLineParts[1].split(" ")[1];
-  rightAscensionRaw.seconds = dataLineParts[1].split(" ")[2];
+    const dataLine = htmlPre[0].split(/\n/gm)[13 + i];
+    const dataLineParts = dataLine.split(/\s{3,}/);
 
-  const declinationData = dataLineParts[2].split(/\+|-/)[1].trim();
-  declinationRaw.degrees = declinationData.split(" ")[0];
-  declinationRaw.minutes = declinationData.split(" ")[1];
-  declinationRaw.seconds = declinationData.split(" ")[2];
-  declinationRaw.sign = dataLineParts[2].match(/\+|-/)[0];
+    const timestamp = getTimestampFromHtml(dataLineParts[0]);
 
-  const rightAscension = rightAscensionToDecimalDegrees(rightAscensionRaw);
-  const declination = declinationToDecimalDeclination(declinationRaw);
+    rightAscensionRaw.hours = dataLineParts[1].split(" ")[0];
+    rightAscensionRaw.minutes = dataLineParts[1].split(" ")[1];
+    rightAscensionRaw.seconds = dataLineParts[1].split(" ")[2];
 
-  return { rightAscension, declination, trackingObjectName };
+    const declinationData = dataLineParts[2].split(/\+|-/)[1].trim();
+    declinationRaw.degrees = declinationData.split(" ")[0];
+    declinationRaw.minutes = declinationData.split(" ")[1];
+    declinationRaw.seconds = declinationData.split(" ")[2];
+    declinationRaw.sign = dataLineParts[2].match(/\+|-/)[0];
+
+    const rightAscension = rightAscensionToDecimalDegrees(rightAscensionRaw);
+    const declination = declinationToDecimalDeclination(declinationRaw);
+
+    raDecTimeCurve.push({ timestamp, rightAscension, declination });
+  }
+  return { raDecTimeCurve, trackingObjectName };
+}
+
+function getTimestampFromHtml(timeData) {
+  const timeDataParts = timeData.split(" ");
+  const year = timeDataParts[0];
+  const monthName = timeDataParts[1];
+  const monthNameArray = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const month = monthNameArray.indexOf(monthName);
+  const day = Number(timeDataParts[2]);
+  const hourMinuteSecondsParts = timeDataParts[3].split(":");
+  const hour = Number(hourMinuteSecondsParts[0]);
+  const minute = Number(hourMinuteSecondsParts[1]);
+  const second = Number(hourMinuteSecondsParts[2].split(".")[0]);
+  // Calling this is screwing up the date
+  // return new Date(year, month, day, hour, minute, second);
+  return new Date(Date.UTC(year, month, day, hour, minute, second));
 }
 
 function rightAscensionToDecimalDegrees({ hours, minutes, seconds }) {
@@ -152,29 +181,36 @@ function getSiderialUrl(urlParameters) {
   return url;
 }
 
-function extractAltitudeAzimuth(
+function extractAltitudeAzimuthTimeArray(
   siderialData,
   latitude,
-  rightAscension,
-  declination
+  raDecTimeCurve
 ) {
-  const localMeanSiderialTime = siderialData.properties.data[0].lmst;
-  const localMeanSiderialTimeDecimal = timeToDecimalHours(
-    localMeanSiderialTime
-  );
-  const hourAngle = rightAscensionDegreesToHourAngle(
-    rightAscension,
-    localMeanSiderialTimeDecimal
-  );
-  const altitude = calculateAltitudeDegrees(declination, latitude, hourAngle);
-  const azimuth = calculateAzimuthDegrees(
-    declination,
-    latitude,
-    altitude,
-    hourAngle
-  );
+  const altitudeAzimuthTimeArray = raDecTimeCurve.map((item, index) => {
+    const hourAngle = rightAscensionDegreesToHourAngle(
+      item.rightAscension,
+      timeToDecimalHours(siderialData.properties.data[index].lmst)
+    );
+    const altitudeValue = calculateAltitudeDegrees(
+      item.declination,
+      latitude,
+      hourAngle
+    );
+    const azimuthValue = calculateAzimuthDegrees(
+      item.declination,
+      latitude,
+      altitudeValue,
+      hourAngle
+    );
+    return {
+      time: item.timestamp,
+      alt: altitudeValue.toFixed(4),
+      az: azimuthValue.toFixed(4),
+      cardinal: getAzimuthCardinalDirection(azimuthValue),
+    };
+  });
 
-  return { altitude, azimuth };
+  return altitudeAzimuthTimeArray;
 }
 
 function timeToDecimalHours(timeStr) {
@@ -231,5 +267,30 @@ function calculateAzimuthDegrees(
     return angle * radiansToDegrees;
   } else {
     return 360 - angle * radiansToDegrees;
+  }
+}
+
+function getAzimuthCardinalDirection(azimuthDegrees) {
+  if (
+    (azimuthDegrees >= 0 && azimuthDegrees < 22.5) ||
+    (azimuthDegrees >= 337.5 && azimuthDegrees <= 360)
+  ) {
+    return "N";
+  } else if (azimuthDegrees >= 22.5 && azimuthDegrees < 67.5) {
+    return "NE";
+  } else if (azimuthDegrees >= 67.5 && azimuthDegrees < 112.5) {
+    return "E";
+  } else if (azimuthDegrees >= 112.5 && azimuthDegrees < 157.5) {
+    return "SE";
+  } else if (azimuthDegrees >= 157.5 && azimuthDegrees < 202.5) {
+    return "S";
+  } else if (azimuthDegrees >= 202.5 && azimuthDegrees < 247.5) {
+    return "SW";
+  } else if (azimuthDegrees >= 247.5 && azimuthDegrees < 292.5) {
+    return "W";
+  } else if (azimuthDegrees >= 292.5 && azimuthDegrees < 337.5) {
+    return "NW";
+  } else {
+    return "Cardinal Direction Error";
   }
 }
